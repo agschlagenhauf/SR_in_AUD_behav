@@ -1,6 +1,6 @@
 # Reduced SR in AUD
 
-Code related to the manuscript 'The successor representation in high-risk drinking and alcohol-related contexts', preregistered at doi.org/10.17605/OSF.IO/9TUZE and published as a preprint at https://doi.org/10.31234/osf.io/rmdqk_v3.
+Code related to the manuscript 'The successor representation in high-risk drinking and alcohol-related contexts', preregistered at https://doi.org/10.17605/OSF.IO/9TUZE and published as a preprint at https://doi.org/10.31234/osf.io/rmdqk_v3.
 
 ## Content
 ### 01_experiment
