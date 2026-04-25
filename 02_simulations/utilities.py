@@ -15,8 +15,26 @@ ACTION_FORCED = 1
 seed = sum(map(ord, "SR_in_AUD"))
 rng = np.random.default_rng(seed)
 
+#def softmax(beta, values):
+#    return(np.exp(beta * np.array(values))/np.sum(np.exp(beta * np.array(values))))
+
+
 def softmax(beta, values):
-    return(np.exp(beta * np.array(values))/np.sum(np.exp(beta * np.array(values))))
+    """
+    Numerically stable softmax over a vector of values.
+    
+    Arguments:
+        - beta: inverse temperature (scales the values before exponentiation)
+        - values: array-like of action values
+    
+    Returns:
+        - 1D numpy array of probabilities summing to 1
+    """
+    v = beta * np.array(values)
+    v_stable = v - np.max(v)
+    nominator = np.exp(v_stable)
+    denominator = np.sum(nominator)
+    return nominator / denominator
 
 def safe_divide(numerator, denominator):
     if denominator == 0.0:

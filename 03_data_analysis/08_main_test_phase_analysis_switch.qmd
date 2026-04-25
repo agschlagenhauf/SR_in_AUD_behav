@@ -34,7 +34,7 @@ custom_colors <- viridis(5, option = "viridis")[c(1, 2, 3, 4, 5)]
 #data_path <- "~/work/group_folder/B01_FP2_WP3/WP3_DATA/FINAL_STUDY/RDFs"
 data_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/WP3_DATA/FINAL_STUDY/RDFs"
 model_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/WP3_DATA/FINAL_STUDY/model_objects"
-figure_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/Project_Docs/Figures"
+figure_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/Project_Docs/Figures/behavioral"
 
 # read dfs
 load(file.path(data_path, "final_data_included.RData"))
@@ -121,53 +121,18 @@ ggplot(test_correct_paths_group_version_condition_df, aes(x=condition, y=mean_sw
                 width=.3,
                 position=position_dodge(.9)) +
   facet_grid(vars(group), vars(version), labeller = as_labeller(supp.labs)) +
-  scale_y_continuous("Proportion of trials \n with changed path preference", limits = c(-0.05, 1.05)) +
-  theme_light(base_size = 16, base_family = "Aptos") +
+  scale_y_continuous("Proportion of test trials \n with changed path preference", limits = c(-0.05, 1.05)) +
+  theme_light(base_size = 12, base_family = "Arial") +
   theme(legend.position = "none",
         axis.title.x=element_blank(),
-        axis.text.x = element_text(angle = 50, vjust = 1, hjust=1, size=16),
-        axis.text.y = element_text(size=16),
-        strip.text.x = element_text(size = 16),
-        strip.text.y = element_text(size = 16)) +
+        axis.text.x = element_text(angle = 50, vjust = 1, hjust=1, size=12),
+        axis.text.y = element_text(size=12),
+        strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12)) +
   scale_fill_viridis(option = "viridis", discrete = TRUE)
 
-ggsave(filename = "main_revaluation_test.png", path = figure_path, width = 6, height = 7, device='png', dpi=600)
-ggsave(filename = "poster_revaluation_test.png", path = figure_path, width = 8, height = 9, device='png', dpi=600)
+ggsave(filename = "main_revaluation_test.png", path = figure_path, width = 8.5, height = 6.5, device='png', dpi=600)
 ```
-
-<!-- ### With LMM predictions -->
-
-<!-- ```{r} -->
-<!-- model3_rs_vers <- readRDS(file.path(model_path, "model3_rs_vers_switch.rds")) -->
-<!-- mmeans <- emmeans(model3_rs_vers, specs = ~ condition|group*version, ref="Transition revaluation", type="response") -->
-<!-- mmeans -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- # bar plot -->
-<!-- ggplot(test_correct_paths_group_version_condition_df, aes(x=condition, y=mean_switch)) + -->
-<!--   geom_bar(stat="identity", aes(fill = condition)) + -->
-<!--   geom_errorbar(aes(ymin=mean_switch-se_switch, ymax=mean_switch+se_switch), -->
-<!--                 width=.3, -->
-<!--                 position=position_dodge(.9)) + -->
-<!--   geom_point(data = as.data.frame(mmeans), aes(x = condition, y = prob), color = "red", size = 2, shape = 1, ) + -->
-<!--   geom_errorbar(data = as.data.frame(mmeans), -->
-<!--                 aes(x = condition, y = prob, -->
-<!--                     ymin=asymp.LCL, ymax=asymp.UCL), -->
-
-<!--                 width=.2, -->
-<!--                 linewidth = 0.3, -->
-<!--                 color = "red", -->
-<!--                 position=position_dodge(1)) + -->
-<!--   facet_grid(vars(group), vars(version)) + -->
-<!--   scale_y_continuous("Proportion of trials \n with changed path preference", limits = c(-0.05, 1.05)) + -->
-<!--   theme_light(base_size = 16) + -->
-<!--   theme(legend.position = "none", -->
-<!--         axis.title.x=element_blank(), -->
-<!--         axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) + -->
-<!--   scale_fill_viridis(option = "viridis", discrete = TRUE) -->
-
-<!-- ``` -->
 
 ### Low-risk drinkers monetary version only
 
@@ -194,14 +159,14 @@ ggplot(test_correct_paths_lowrisk_mon_condition_df, aes(x=condition, y=mean_swit
   geom_errorbar(aes(ymin=mean_switch-se_switch, ymax=mean_switch+se_switch),
                 width=.2,
                 position=position_dodge(.9)) +
-  scale_y_continuous("Proportion of trials \n with changed path preference", limits = c(-0.05, 1.05)) +
-  theme_light(base_size = 16, base_family = "Aptos") +
+  scale_y_continuous("Proportion of test trials \n with changed path preference", limits = c(-0.05, 1.05)) +
+  theme_light(base_size = 12, base_family = "Arial") +
   theme(legend.position = "none",
         axis.title.x=element_blank(),
-        axis.text.x = element_text(angle = 50, vjust = 1, hjust=1, size=16)) +
+        axis.text.x = element_text(angle = 50, vjust = 1, hjust=1, size=12)) +
   scale_fill_viridis(option = "viridis", discrete = TRUE)
 
-ggsave(filename = "main_lowrisk_monetary.png", path = figure_path, width = 6, height = 5.5, device='png', dpi=600)
+ggsave(filename = "main_lowrisk_monetary.png", path = figure_path, width = 5, height = 4.5, device='png', dpi=600)
 
 ```
 
@@ -237,7 +202,7 @@ names(supp.labs) <- c("Low-risk drinkers", "Harmful drinkers", "Monetary version
 ggplot(test_correct_paths_group_version_condition_ID_df, aes(x=mean_switch, fill = condition, color=condition)) +
   geom_histogram(alpha = 0.5, position="identity", binwidth = 0.2) +
   facet_wrap(~ group + version + condition, nrow=4, labeller = as_labeller(supp.labs)) +
-  scale_x_continuous(name = "Proportion of trials with changed path preference", breaks = seq(0, 1, by = 0.2)) +
+  scale_x_continuous(name = "Proportion of test trials with changed path preference", breaks = seq(0, 1, by = 0.2)) +
   scale_y_continuous(name = "Number of participants") +
   theme_light(base_size = 16, base_family = "Aptos") +
   theme(#axis.title.x = element_blank(),
@@ -415,9 +380,9 @@ ggplot(exploration_df, aes(x=percent_least_optimal_path, y=individual_slope)) +
   geom_smooth(method = 'lm', alpha = 0.2, size=1.3, color="black") + 
   scale_y_continuous("Individual slope \n policy > transition revaluation") +
   scale_x_continuous("Proportion of \n least optimal path choices \n in policy revaluation learning phase") +
-  theme_light(base_size = 16, base_family = "Aptos")
+  theme_light(base_size = 12, base_family = "Arial")
 
-ggsave(filename = "main_policy_correlation.png", path = figure_path, width = 5, height = 5.5, device='png', dpi=600)
+ggsave(filename = "main_policy_correlation.png", path = figure_path, width = 4, height = 4.5, device='png', dpi=600)
 
 ```
 
@@ -451,64 +416,6 @@ check_model(model2_rs, check=c("pp_check", "reqq", "qq"))
 
 > Harmful drinkers show a higher degree of SR use compared to low-risk drinkers when learning in an alcohol compared to a non-alcohol context. Specifically, we expect more correct test phase paths in the reward revaluation compared to the transition revaluation condition for harmful drinkers compared to low-risk drinkers in the alcohol compared to the non-alcohol task version.
 
-<!-- #### Originally proposed model -->
-
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_group_version_condition_df_full$condition) <- contr.treatment(5, base = 3) -->
-
-<!-- # create model matrices -->
-<!-- mm <- model.matrix(switch_path ~ 1 + condition*group*version, data=logreg_test_path_group_version_condition_df_full) -->
-<!-- conditionReward <- mm[,2] -->
-<!-- conditionGoalstate <- mm[,3] -->
-<!-- conditionPolicy <- mm[,4] -->
-<!-- conditionControl <- mm[,5] -->
-<!-- groupHarmful <- mm[,6] -->
-<!-- conditionReward_groupHarmful <- mm[,8] -->
-<!-- conditionGoalstate_groupHarmful <- mm[,9] -->
-<!-- conditionPolicy_groupHarmful <- mm[,10] -->
-<!-- conditionControl_groupHarmful <- mm[,11] -->
-<!-- conditionReward_groupHarmful_versionAlc <- mm[,17] -->
-<!-- conditionGoalstate_groupHarmful_versionAlc <- mm[,18] -->
-<!-- conditionPolicy_groupHarmful_versionAlc <- mm[,19] -->
-<!-- conditionControl_groupHarmful_versionAlc <- mm[,20] -->
-
-<!-- model3 <- glmer(switch_path ~ -->
-<!--                   conditionReward + conditionGoalstate + conditionPolicy + conditionControl + -->
-<!--                   groupHarmful + -->
-<!--                   conditionReward_groupHarmful + conditionGoalstate_groupHarmful + -->
-<!--                   conditionPolicy_groupHarmful + conditionControl_groupHarmful + -->
-<!--                   conditionReward_groupHarmful_versionAlc + conditionGoalstate_groupHarmful_versionAlc + -->
-<!--                   conditionPolicy_groupHarmful_versionAlc + conditionControl_groupHarmful_versionAlc + -->
-<!--                   (1 | ID), -->
-<!--                 data = logreg_test_path_group_version_condition_df_full, -->
-<!--                 family = "binomial", -->
-<!--                 glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model3, file=file.path(model_path, "model3_switch.rds")) -->
-<!-- model3 <- readRDS(file.path(model_path, "model3_switch.rds")) -->
-
-<!-- model3_rs <- glmer(switch_path ~ -->
-<!--                   conditionReward + conditionGoalstate + conditionPolicy + conditionControl + -->
-<!--                   groupHarmful + -->
-<!--                   conditionReward_groupHarmful + conditionGoalstate_groupHarmful + -->
-<!--                   conditionPolicy_groupHarmful + conditionControl_groupHarmful + -->
-<!--                   conditionReward_groupHarmful_versionAlc + conditionGoalstate_groupHarmful_versionAlc + -->
-<!--                   conditionPolicy_groupHarmful_versionAlc + conditionControl_groupHarmful_versionAlc + -->
-<!--                   (1 + conditionReward + conditionGoalstate + conditionPolicy + conditionControl | ID), -->
-<!--                 data = logreg_test_path_group_version_condition_df_full, -->
-<!--                 family = "binomial", -->
-<!--                 glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model3_rs, file=file.path(model_path, "model3_rs_switch.rds")) -->
-<!-- model3_rs <- readRDS(file.path(model_path, "model3_rs_switch.rds")) -->
-
-<!-- anova(model3, model3_rs) -->
-
-<!-- tab_model(model3_rs, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- check_model(model3_rs, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
-<!-- #### Compare to model including all version effects -->
-
 ```{r}
 contrasts(logreg_test_path_group_version_condition_df_full$condition) <- contr.treatment(5, base = 3)
 
@@ -538,10 +445,6 @@ check_model(model3_rs_vers, check=c("pp_check", "reqq", "qq"))
 ```
 
 #### Inspect interactions
-
-<!-- ```{r} -->
-<!-- plot_model(model3_rs_vers, type = "pred", terms = c("condition", "group", "version"), bias_correction = F) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) -->
-<!-- ``` -->
 
 ```{r}
 # get marginal means per version
@@ -616,7 +519,7 @@ ggplot(exploration_df, aes(x=percent_least_optimal_path, y=individual_slope)) +
   geom_smooth(method = 'lm', alpha = 0.2, size=1.3, color="black") + 
   scale_y_continuous("Individual slope \n policy > transition revaluation") +
   scale_x_continuous("Proportion of \n least optimal path choices \n in policy revaluation learning phase") +
-  theme_light(base_size = 16, base_family = "Aptos")
+  theme_light(base_size = 16, base_family = "Arial")
 
 ggsave(filename = "main_policy_correlation_all.png", path = figure_path, width = 5, height = 5.5, device='png', dpi=600)
 
@@ -652,64 +555,6 @@ check_model(model4_rs, check=c("pp_check", "reqq", "qq"))
 
 > Harmful drinkers show a higher degree of rigid goal-based reduced SR use compared to low-risk drinkers when learning in an alcohol compared to a non-alcohol context. Specifically, we expect less correct test phase paths in the goal-state compared to the reward revaluation condition for harmful drinkers compared to low-risk drinkers in the alcohol compared to the non-alcohol task version.
 
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_group_version_condition_df_full$condition) <- contr.treatment(5, base = 1) -->
-
-<!-- # create model matrices -->
-<!-- mm <- model.matrix(switch_path ~ 1 + condition*group*version, data=logreg_test_path_group_version_condition_df_full) -->
-<!-- conditionGoalstate <- mm[,2] -->
-<!-- conditionTransition <- mm[,3] -->
-<!-- conditionPolicy <- mm[,4] -->
-<!-- conditionControl <- mm[,5] -->
-<!-- groupHarmful <- mm[,6] -->
-<!-- conditionGoalstate_groupHarmful <- mm[,8] -->
-<!-- conditionTransition_groupHarmful <- mm[,9] -->
-<!-- conditionPolicy_groupHarmful <- mm[,10] -->
-<!-- conditionControl_groupHarmful <- mm[,11] -->
-<!-- conditionGoalstate_groupHarmful_versionAlc <- mm[,17] -->
-<!-- conditionTransition_groupHarmful_versionAlc <- mm[,18] -->
-<!-- conditionPolicy_groupHarmful_versionAlc <- mm[,19] -->
-<!-- conditionControl_groupHarmful_versionAlc <- mm[,20] -->
-
-<!-- # model5 <- glmer(switch_path ~ -->
-<!-- #                   conditionGoalstate + conditionTransition + conditionPolicy + conditionControl + -->
-<!-- #                   groupHarmful + -->
-<!-- #                   conditionGoalstate_groupHarmful + conditionTransition_groupHarmful + -->
-<!-- #                   conditionPolicy_groupHarmful + conditionControl_groupHarmful + -->
-<!-- #                   conditionGoalstate_groupHarmful_versionAlc + conditionTransition_groupHarmful_versionAlc + -->
-<!-- #                   conditionPolicy_groupHarmful_versionAlc + conditionControl_groupHarmful_versionAlc + -->
-<!-- #                   (1 | ID), -->
-<!-- #                 data = logreg_test_path_group_version_condition_df_full, -->
-<!-- #                 family = "binomial", -->
-<!-- #                 glmerControl(optCtrl=list(maxfun=1e6), -->
-<!-- #                              optimizer = "bobyqa")) -->
-<!-- # saveRDS(model5, file=file.path(model_path, "model5_switch.rds")) -->
-<!-- model5 <- readRDS(file.path(model_path, "model5_switch.rds")) -->
-
-<!-- model5_rs <- glmer(switch_path ~ -->
-<!--                   conditionGoalstate + conditionTransition + conditionPolicy + conditionControl + -->
-<!--                   groupHarmful + -->
-<!--                   conditionGoalstate_groupHarmful + conditionTransition_groupHarmful + -->
-<!--                   conditionPolicy_groupHarmful + conditionControl_groupHarmful + -->
-<!--                   conditionGoalstate_groupHarmful_versionAlc + conditionTransition_groupHarmful_versionAlc + -->
-<!--                   conditionPolicy_groupHarmful_versionAlc + conditionControl_groupHarmful_versionAlc + -->
-<!--                   (1 + conditionGoalstate + conditionTransition + conditionPolicy + conditionControl | ID), -->
-<!--                 data = logreg_test_path_group_version_condition_df_full, -->
-<!--                 family = "binomial", -->
-<!--                 glmerControl(optCtrl=list(maxfun=1e6), -->
-<!--                              optimizer = "bobyqa")) -->
-<!-- saveRDS(model5_rs, file=file.path(model_path, "model5_rs_switch.rds")) -->
-<!-- model5_rs <- readRDS(file.path(model_path, "model5_rs_switch.rds")) -->
-
-<!-- anova(model5, model5_rs) -->
-
-<!-- tab_model(model5_rs, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- check_model(model5_rs, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
-<!-- #### Compare to model including all version effects -->
-
 ```{r}
 contrasts(logreg_test_path_group_version_condition_df_full$condition) <- contr.treatment(5, base = 1)
 
@@ -741,10 +586,6 @@ check_model(model5_rs_vers, check=c("pp_check", "reqq", "qq"))
 ```
 
 #### Inspect interactions
-
-<!-- ```{r} -->
-<!-- plot_model(model5_rs_vers, type = "pred", terms = c("condition", "group", "version"), bias_correction = F) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) -->
-<!-- ``` -->
 
 ```{r}
 # get marginal means per group
@@ -866,49 +707,6 @@ contrasts
 
 # Time (trial) effects
 
-<!-- ## Condition index -->
-
-<!-- ### Plot -->
-
-<!-- ```{r} -->
-<!-- # get percent correct over time -->
-<!-- test_paths_group_version_condition_index_df <- trial_df %>% -->
-<!--   mutate(condition_index = as.factor(condition_index)) %>% -->
-<!--   filter(phase == "test", -->
-<!--          state == 1 -->
-<!--          ) %>% -->
-<!--   group_by(group, version, condition, condition_index) %>% -->
-<!--   summarise(mean_switch = mean(switch_path, na.rm = TRUE), -->
-<!--             se_switch = sd(switch_path, na.rm = TRUE)/sqrt(n()), -->
-<!--             ci_l = ci(switch_path, na.rm=TRUE)[2], -->
-<!--             ci_u = ci(switch_path, na.rm=TRUE)[3], -->
-<!--             n = n() -->
-<!--             ) -->
-
-<!-- test_paths_group_version_condition_index_df %>% -->
-<!--   kable("html") %>% -->
-<!--   kable_styling(font_size = 16, -->
-<!--                 latex_options = "scale_down") -->
-
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- # bar plot -->
-<!-- ggplot(test_paths_group_version_condition_index_df, aes(x=condition_index, y=mean_switch, fill=condition)) + -->
-<!--   geom_bar(stat="identity", position=position_dodge(), aes(fill = condition)) + -->
-<!--   geom_errorbar(aes(ymin=mean_switch-se_switch, ymax=mean_switch+se_switch), width=.2, position=position_dodge(.9)) + -->
-<!--   facet_grid(vars(group), vars(version)) + -->
-<!--   scale_y_continuous("Proportion of trials \n with changed path preference", limits = c(-0.10, 1.05)) + -->
-<!--   xlab("Condition index") + -->
-<!--   theme_light(base_size = 16) + -->
-<!--   scale_fill_viridis("Condition", option = "viridis", discrete = TRUE) -->
-
-<!-- ``` -->
-
-<!-- ### Logistic regression -->
-
-<!-- Condition index and trial number are centered at 0, so that intercept is meaningful and reflects the first index/trial. -->
-
 ```{r}
 # Set contrasts
 contrasts(trial_df$group) <- contr.sum(2)*-0.5
@@ -972,295 +770,6 @@ logreg_test_path_group_condition_env_time_df_alcohol <- trial_df %>%
 
 ```
 
-<!-- #### Model 1_index: Low-risk drinkers, control version, compare against transition revaluation -->
-
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_condition_env_time_df_lowrisk_control$condition) <- contr.treatment(5, base = 3) -->
-<!-- contrasts(logreg_test_path_condition_env_time_df_lowrisk_control$condition_index) <- contr.treatment(5, base = 3) -->
-
-<!-- model1_index <- glmer(switch_path ~ condition*condition_index + (1 + condition | ID), data = logreg_test_path_condition_env_time_df_lowrisk_control, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model1_index, file=file.path(model_path, "model1_index_switch.rds")) -->
-<!-- model1_index <- readRDS(file.path(model_path, "model1_index_switch.rds")) -->
-
-<!-- model1_index_rs <- glmer(switch_path ~ condition*condition_index + (1 + condition + condition_index | ID), data = logreg_test_path_condition_env_time_df_lowrisk_control, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model1_index_rs, file=file.path(model_path, "model1_index_rs_switch.rds")) -->
-<!-- model1_index_rs <- readRDS(file.path(model_path, "model1_index_rs_switch.rds")) -->
-
-<!-- anova(model1_index, model1_index_rs) -->
-
-<!-- tab_model(model1_index, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- #check_model(model1_index_rs, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
-<!-- ##### Inspect interactions -->
-
-<!-- ```{r} -->
-<!-- plot_model(model1_index_rs, type = "pred", terms = c("condition", "condition_index"), bias_correction = F) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- # get marginal means -->
-<!-- mmeans <- emtrends(model1_index_rs, "condition", var="condition_index") -->
-<!-- test(mmeans, adjust="Holm") -->
-
-<!-- # contrasts between marginal means per group and version -->
-<!-- contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=5, adjust = "Holm") -->
-<!-- contrasts -->
-<!-- ``` -->
-
-<!-- #### Model 2_index: Low-risk drinkers, control version, compare against policy revaluation -->
-
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_condition_env_time_df_lowrisk_control$condition) <- contr.treatment(5, base = 4) -->
-<!-- contrasts(logreg_test_path_condition_env_time_df_lowrisk_control$condition_index) <- contr.treatment(5, base = 3) -->
-
-<!-- model2_index <- glmer(switch_path ~ condition*condition_index + (1 + condition | ID), data = logreg_test_path_condition_env_time_df_lowrisk_control, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model2_index, file=file.path(model_path, "model2_index_switch.rds")) -->
-<!-- model2_index <- readRDS(file.path(model_path, "model2_index_switch.rds")) -->
-
-<!-- model2_index_rs <- glmer(switch_path ~ condition*condition_index + (1 + condition + condition_index | ID), data = logreg_test_path_condition_env_time_df_lowrisk_control, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model2_index_rs, file=file.path(model_path, "model2_index_rs_switch.rds")) -->
-<!-- model2_index_rs <- readRDS(file.path(model_path, "model2_index_rs_switch.rds")) -->
-
-<!-- anova(model2_index, model2_index_rs) -->
-
-<!-- tab_model(model2_index_rs, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- check_model(model1_index_rs, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
-<!-- ##### Inspect interactions -->
-
-<!-- ```{r} -->
-<!-- plot_model(model2_index_rs, type = "pred", terms = c("condition", "condition_index"), bias_correction = F) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- # get marginal means -->
-<!-- mmeans <- emtrends(model2_index_rs, "condition", var="condition_index") -->
-<!-- test(mmeans) -->
-
-<!-- # contrasts between marginal means per group and version -->
-<!-- contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=4, adjust = NULL) -->
-<!-- contrasts -->
-<!-- ``` -->
-
-<!-- #### Model 3_index: Full dataset, compare against transition revaluation -->
-
-<!-- Change if it turns out that preregistered model without full version effects is optimal -->
-
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_group_version_condition_env_time_df_full$condition) <- contr.treatment(5, base = 3) -->
-<!-- contrasts(logreg_test_path_group_version_condition_env_time_df_full$condition_index) <- contr.treatment(5, base = 3) -->
-
-<!-- model3_index <- glmer(switch_path ~ group*version*condition*condition_index + (1 + condition | ID), -->
-<!--                 data = logreg_test_path_group_version_condition_env_time_df_full, -->
-<!--                 family = "binomial", -->
-<!--                 glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model3_index, file=file.path(model_path, "model3_index_switch.rds")) -->
-<!-- model3_index <- readRDS(file.path(model_path, "model3_index_switch.rds")) -->
-
-<!-- # singular fit -->
-<!-- model3_index_rs <- glmer(switch_path ~ group*version*condition*condition_index + (1 + condition + condition_index | ID), -->
-<!--                 data = logreg_test_path_group_version_condition_env_time_df_full, -->
-<!--                 family = "binomial", -->
-<!--                 glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model3_index_rs, file=file.path(model_path, "model3_index_rs_switch.rds")) -->
-<!-- model3_index_rs <- readRDS(file.path(model_path, "model3_index_rs_switch.rds")) -->
-
-<!-- anova(model3_index, model3_index_rs) -->
-
-<!-- tab_model(model3_index, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- #check_model(model3_index_rs, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
-<!-- ##### Inspect interactions -->
-
-<!-- ```{r} -->
-<!-- plot_model(model3_index, type = "pred", terms = c("condition", "condition_index", "version", "group"), bias_correction = T) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1))  -->
-<!-- ``` -->
-
-<!-- Contrasts between time slopes in reward and transition revaluation -->
-
-<!-- ```{r} -->
-<!-- joint_tests(model3_index, by=c("group", "version")) -->
-
-<!-- # get marginal means -->
-<!-- mmeans <- emtrends(model3_index, ~ condition|version*group, var="condition_index") -->
-<!-- test(mmeans, adjust = "Holm") -->
-
-<!-- # contrasts between policy and transition slopes per group and version -->
-<!-- contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=3, adjust="Holm") -->
-<!-- contrasts -->
-
-<!-- # contrasts between contrasts -->
-<!-- contrasts <- contrast(contrasts, list(#lowriskcon_lowriskalc = c(0,0,-1,0,0,0,1,0,0,0,0,0,0,0,0,0), -->
-<!--                                    lowriskcon_harmfulalc = c(-1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0), -->
-<!--                                    harmfulcon_lowriskalc = c(0,0,0,0,1,0,0,0,-1,0,0,0,0,0,0,0), -->
-<!--                                    harmfulcon_harmfulalc = c(0,0,0,0,0,0,0,0,-1,0,0,0,1,0,0,0)),  -->
-<!--                       ref=4, adjust = "Holm", by=NULL) -->
-<!-- contrasts -->
-<!-- ``` -->
-
-<!-- #### Model 4_index: Alcohol context, compare against reward revaluation -->
-
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_group_condition_env_time_df_alcohol$condition) <- contr.treatment(5, base = 1) -->
-<!-- contrasts(logreg_test_path_group_condition_env_time_df_alcohol$condition_index) <- contr.treatment(5, base = 3) -->
-
-<!-- model4_index <- glmer(switch_path ~ condition*group*condition_index + (1 + condition | ID), data = logreg_test_path_group_condition_env_time_df_alcohol, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model4_index, file=file.path(model_path, "model4_index_switch.rds")) -->
-<!-- model4_index <- readRDS(file.path(model_path, "model4_index_switch.rds")) -->
-
-<!-- model4_index_rs <- glmer(switch_path ~ condition*group*condition_index + (1 + condition + condition_index | ID), data = logreg_test_path_group_condition_env_time_df_alcohol, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model4_index_rs, file=file.path(model_path, "model4_index_rs_switch.rds")) -->
-<!-- model4_index_rs <- readRDS(file.path(model_path, "model4_index_rs_switch.rds")) -->
-
-<!-- anova(model4_index, model4_index_rs) -->
-
-<!-- tab_model(model4_index_rs, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- check_model(model4_index_rs, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
-<!-- ##### Inspect interactions -->
-
-<!-- ```{r} -->
-<!-- plot_model(model4_index_rs, type = "pred", terms = c("condition", "condition_index", "group"), bias_correction = T) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1))  -->
-<!-- ``` -->
-
-<!-- Contrasts between time slopes in goal-state and reward revaluation -->
-
-<!-- ```{r} -->
-<!-- # get marginal means -->
-<!-- mmeans <- emtrends(model4_index_rs, ~ condition|group, var="condition_index") -->
-<!-- test(mmeans, adjust = "Holm") -->
-
-<!-- # contrasts between policy and transition slopes per group and version -->
-<!-- contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=1, adjust=NULL) -->
-<!-- contrasts -->
-
-<!-- # contrasts between contrasts -->
-<!-- contrasts <- contrast(contrasts, list(#lowriskcon_lowriskalc = c(0,0,-1,0,0,0,1,0,0,0,0,0,0,0,0,0), -->
-<!--                                    lowriskcon_harmfulalc = c(0,0,-1,0,0,0,0,0,0,0,0,0,0,0,1,0), -->
-<!--                                    harmfulcon_lowriskalc = c(0,0,0,0,0,0,1,0,0,0,-1,0,0,0,0,0), -->
-<!--                                    harmfulcon_harmfulalc = c(0,0,0,0,0,0,0,0,0,0,-1,0,0,0,1,0)),  -->
-<!--                       ref=4, adjust = "Holm", by=NULL) -->
-<!-- contrasts -->
-<!-- ``` -->
-
-<!-- #### Model 5_index: Full dataset, compare against reward revaluation -->
-
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_group_version_condition_env_time_df_full$condition) <- contr.treatment(5, base = 1) -->
-<!-- contrasts(logreg_test_path_group_version_condition_env_time_df_full$condition_index) <- contr.treatment(5, base = 3) -->
-
-<!-- model5_index <- glmer(switch_path ~ group*version*condition*condition_index + (1 + condition | ID), -->
-<!--                 data = logreg_test_path_group_version_condition_env_time_df_full, -->
-<!--                 family = "binomial", -->
-<!--                 glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model5_index, file=file.path(model_path, "model5_index_switch.rds")) -->
-<!-- model5_index <- readRDS(file.path(model_path, "model5_index_switch.rds")) -->
-
-<!-- # singular fit -->
-<!-- model5_index_rs <- glmer(switch_path ~ group*version*condition*condition_index + (1 + condition + condition_index | ID), -->
-<!--                 data = logreg_test_path_group_version_condition_env_time_df_full, -->
-<!--                 family = "binomial", -->
-<!--                 glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model5_index_rs, file=file.path(model_path, "model5_index_rs_switch.rds")) -->
-<!-- model5_index_rs <- readRDS(file.path(model_path, "model5_index_rs_switch.rds")) -->
-
-<!-- anova(model5_index, model5_index_rs) -->
-
-<!-- tab_model(model5_index, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- check_model(model5_index, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
-<!-- ##### Inspect interactions -->
-
-<!-- ```{r} -->
-<!-- plot_model(model5_index, type = "pred", terms = c("condition", "condition_index", "version", "group"), bias_correction = T) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1))  -->
-<!-- ``` -->
-
-<!-- Contrasts between time slopes in goal-state and reward revaluation -->
-
-<!-- ```{r} -->
-<!-- # get marginal means -->
-<!-- mmeans <- emtrends(model5_index, ~ condition|version*group, var="condition_index") -->
-<!-- test(mmeans, adjust = "Holm") -->
-
-<!-- # contrasts between policy and transition slopes per group and version -->
-<!-- contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=1, adjust=NULL) -->
-<!-- contrasts -->
-
-<!-- # contrasts between contrasts -->
-<!-- contrasts <- contrast(contrasts, list(#lowriskcon_lowriskalc = c(0,0,-1,0,0,0,1,0,0,0,0,0,0,0,0,0), -->
-<!--                                    lowriskcon_harmfulalc = c(-1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0), -->
-<!--                                    harmfulcon_lowriskalc = c(0,0,0,0,1,0,0,0,-1,0,0,0,0,0,0,0), -->
-<!--                                    harmfulcon_harmfulalc = c(0,0,0,0,0,0,0,0,-1,0,0,0,1,0,0,0)),  -->
-<!--                       ref=4, adjust = "Holm", by=NULL) -->
-<!-- contrasts -->
-<!-- ``` -->
-
-<!-- Contrasts between index 1 in policy and reward revaluation -->
-
-<!-- ```{r} -->
-<!-- # get marginal means -->
-<!-- mmeans <- emmeans(model5_index_rs, ~ condition|version*group*condition_index, at = list(condition_index = c(0))) -->
-<!-- test(mmeans, adjust = "Holm") -->
-
-<!-- # contrasts between policy and transition slopes per group and version -->
-<!-- contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=1, adjust=NULL) -->
-<!-- contrasts -->
-
-<!-- # contrasts between contrasts -->
-<!-- contrasts <- contrast(contrasts, list(lowriskcon_harmfulalc = c(0,0,-1,0,0,0,0,0,0,0,0,0,0,0,-1,0), -->
-<!--                                    harmfulcon_lowriskalc = c(0,0,0,0,0,0,1,0,0,0,-1,0,0,0,0,0), -->
-<!--                                    harmfulcon_harmfulalc = c(0,0,0,0,0,0,0,0,0,0,-1,0,0,0,1,0)),  -->
-<!--                       ref=4, adjust = "Holm", by=NULL) -->
-<!-- contrasts -->
-<!-- ``` -->
-
-<!-- ##### Inspect MF contributions -->
-
-<!-- ```{r} -->
-<!-- # get marginal means -->
-<!-- mmeans <- emtrends(model5_index_rs, ~ condition|version*group, var="condition_index") -->
-<!-- test(mmeans, adjust = "Holm") -->
-
-<!-- # contrasts between contrasts -->
-<!-- contrasts <- contrast(mmeans, list(lowriskcon_harmfulalc = c(-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0), -->
-<!--                                    harmfulcon_lowriskalc = c(0,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,0,0,0,0,0), -->
-<!--                                    harmfulcon_harmfulalc = c(0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,1,0,0,0,0)),  -->
-<!--                       ref=4, adjust = "Holm", by=NULL) -->
-<!-- contrasts -->
-<!-- ``` -->
-
-<!-- ##### Inspect evidence for random-policy SR (contrast reward vs. policy) -->
-
-<!-- ```{r} -->
-<!-- # get marginal means -->
-<!-- mmeans <- emtrends(model5_index_rs, ~ condition|version*group, var="condition_index") -->
-<!-- test(mmeans, adjust = "Holm") -->
-
-<!-- # contrasts between policy and transition slopes per group and version -->
-<!-- contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=1, adjust=NULL) -->
-<!-- contrasts -->
-
-<!-- # contrasts between contrasts -->
-<!-- contrasts <- contrast(contrasts, list(#lowriskcon_lowriskalc = c(0,0,-1,0,0,0,1,0,0,0,0,0,0,0,0,0), -->
-<!--                                    lowriskcon_harmfulalc = c(0,0,-1,0,0,0,0,0,0,0,0,0,0,0,1,0), -->
-<!--                                    harmfulcon_lowriskalc = c(0,0,0,0,0,0,1,0,0,0,-1,0,0,0,0,0), -->
-<!--                                    harmfulcon_harmfulalc = c(0,0,0,0,0,0,0,0,0,0,-1,0,0,0,1,0)),  -->
-<!--                       ref=4, adjust = "Holm", by=NULL) -->
-<!-- contrasts -->
-<!-- ``` -->
-
-<!-- ## Trial number (within condition) effects -->
-
 ### Plot
 
 ```{r}
@@ -1309,63 +818,6 @@ ggsave(filename = "suppl_trialeffects.png", path = figure_path, width = 11, heig
 
 ### Logistic regression
 
-<!-- #### Model 1_trial: Low-risk drinkers, control version, compare against transition revaluation -->
-
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_condition_env_time_df_lowrisk_control$condition) <- contr.treatment(5, base = 3) -->
-
-<!-- model1_trial <- glmer(switch_path ~ condition*trial + (1 + condition | ID), data = logreg_test_path_condition_env_time_df_lowrisk_control, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model1_trial, file=file.path(model_path, "model1_trial_switch.rds")) -->
-<!-- model1_trial <- readRDS(file.path(model_path, "model1_trial_switch.rds")) -->
-
-<!-- # does not converge -->
-<!-- model1_trial_rs <- glmer(switch_path ~ condition*trial + (1 + condition + trial | ID), data = logreg_test_path_condition_env_time_df_lowrisk_control, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model1_trial_rs, file=file.path(model_path, "model1_trial_rs_switch.rds")) -->
-<!-- model1_trial_rs <- readRDS(file.path(model_path, "model1_trial_rs_switch.rds")) -->
-
-<!-- anova(model1_trial, model1_trial_rs) -->
-
-<!-- tab_model(model1_trial, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- check_model(model1_trial, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
-<!-- ##### Inspect interactions -->
-
-<!-- ```{r} -->
-<!-- plot_model(model1_trial, type = "pred", terms = c("condition", "accumulated_state1_visits"), bias_correction = T) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- # get marginal means -->
-<!-- mmeans <- emtrends(model1_trial, "condition", var="accumulated_state1_visits") -->
-<!-- test(mmeans) -->
-
-<!-- # contrasts between marginal means per group and version -->
-<!-- contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=3, adjust = "Holm") -->
-<!-- contrasts -->
-<!-- ``` -->
-
-<!-- #### Model 2_trial: Low-risk drinkers, control version, compare against policy revaluation -->
-
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_condition_env_time_df_lowrisk_control$condition) <- contr.treatment(5, base = 4) -->
-
-<!-- model2_trial <- glmer(switch_path ~ condition*trial + (1 + condition | ID), data = logreg_test_path_condition_env_time_df_lowrisk_control, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model2_trial, file=file.path(model_path, "model2_trial_switch.rds")) -->
-<!-- model2_trial <- readRDS(file.path(model_path, "model2_trial_switch.rds")) -->
-
-<!-- model2_trial_rs <- glmer(switch_path ~ condition*trial + (1 + condition + trial | ID), data = logreg_test_path_condition_env_time_df_lowrisk_control, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model2_trial_rs, file=file.path(model_path, "model2_trial_rs_switch.rds")) -->
-<!-- model2_trial_rs <- readRDS(file.path(model_path, "model2_trial_rs_switch.rds")) -->
-
-<!-- anova(model2_trial, model2_trial_rs) -->
-
-<!-- tab_model(model2_trial, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- check_model(model2_trial, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
 #### Full dataset, compare against transition revaluation
 
 ```{r}
@@ -1395,10 +847,6 @@ check_model(model3_trial, check=c("pp_check", "reqq", "qq"))
 
 ##### Inspect interactions
 
-<!-- ```{r} -->
-<!-- plot_model(model3_trial, type = "pred", terms = c("condition", "trial", "group", "version"), bias_correction = F) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) -->
-<!-- ``` -->
-
 ```{r}
 # get marginal means per condition and version
 mmeans <- emmeans(model3_trial, ~ condition|version, at = list(trial = 0), type="response")
@@ -1427,84 +875,6 @@ contrasts <- contrast(mmeans,
                       adjust = "bonferroni")
 contrasts
 ```
-
-<!-- #### Model 4_trial: Alcohol context, compare against reward revaluation -->
-
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_group_condition_env_time_df_alcohol$condition) <- contr.treatment(5, base = 1) -->
-<!-- contrasts(logreg_test_path_group_condition_env_time_df_alcohol$trial) <- contr.treatment(5, base = 3) -->
-
-<!-- model4_trial <- glmer(switch_path ~ condition*group*trial + (1 + condition | ID), data = logreg_test_path_group_condition_env_time_df_alcohol, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model4_trial, file=file.path(model_path, "model4_trial_switch.rds")) -->
-<!-- model4_trial <- readRDS(file.path(model_path, "model4_trial_switch.rds")) -->
-
-<!-- model4_trial_rs <- glmer(switch_path ~ condition*group*trial + (1 + condition + trial | ID), data = logreg_test_path_group_condition_env_time_df_alcohol, family = "binomial", glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model4_trial_rs, file=file.path(model_path, "model4_trial_rs_switch.rds")) -->
-<!-- model4_trial_rs <- readRDS(file.path(model_path, "model4_trial_rs_switch.rds")) -->
-
-<!-- anova(model4_trial, model4_trial_rs) -->
-
-<!-- tab_model(model4_trial_rs, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- check_model(model4_trial_rs, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
-<!-- ##### Inspect interactions -->
-
-<!-- ```{r} -->
-<!-- plot_model(model4_trial_rs, type = "pred", terms = c("condition", "accumulated_state1_visits", "group"), bias_correction = F) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) -->
-<!-- ``` -->
-
-<!-- #### Model 5_trial: Full dataset, compare against reward revaluation -->
-
-<!-- ```{r} -->
-<!-- contrasts(logreg_test_path_group_version_condition_env_time_df_full$condition) <- contr.treatment(5, base = 1) -->
-<!-- contrasts(logreg_test_path_group_version_condition_env_time_df_full$trial) <- contr.treatment(5, base = 3) -->
-
-<!-- model5_trial <- glmer(switch_path ~ group*version*condition*trial + (1 + condition | ID), -->
-<!--                 data = logreg_test_path_group_version_condition_env_time_df_full, -->
-<!--                 family = "binomial", -->
-<!--                 glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model5_trial, file=file.path(model_path, "model5_trial_switch.rds")) -->
-<!-- model5_trial <- readRDS(file.path(model_path, "model5_trial_switch.rds")) -->
-
-<!-- # does not converge -->
-<!-- model5_trial_rs <- glmer(switch_path ~ group*version*condition*trial + (1 + condition + trial | ID), -->
-<!--                 data = logreg_test_path_group_version_condition_env_time_df_full, -->
-<!--                 family = "binomial", -->
-<!--                 glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=1e6))) -->
-<!-- saveRDS(model5_trial_rs, file=file.path(model_path, "model5_trial_rs_switch.rds")) -->
-<!-- model5_trial_rs <- readRDS(file.path(model_path, "model5_trial_rs_switch.rds")) -->
-
-<!-- anova(model5_trial, model5_trial_rs) -->
-
-<!-- tab_model(model5_trial, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- check_model(model5_trial, check=c("pp_check", "reqq", "qq")) -->
-<!-- ``` -->
-
-<!-- ##### Inspect interactions -->
-
-<!-- ```{r} -->
-<!-- plot_model(model5_trial, type = "pred", terms = c("condition", "accumulated_state1_visits", "group", "version"), bias_correction = F) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- # get marginal means -->
-<!-- mmeans <- emtrends(model5_trial, ~ condition|version*group, var="accumulated_state1_visits") -->
-<!-- test(mmeans, adjust = "Holm") -->
-
-<!-- # contrasts between policy and transition slopes per group and version -->
-<!-- contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=3, adjust="Holm") -->
-<!-- contrasts -->
-
-<!-- # contrasts between contrasts -->
-<!-- contrasts <- contrast(contrasts, list(lowriskcon_harmfulalc = c(0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,1), -->
-<!--                                    harmfulcon_lowriskalc = c(0,0,0,0,0,0,0,1,0,0,0,-1,0,0,0,0), -->
-<!--                                    harmfulcon_harmfulalc = c(0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,1)),  -->
-<!--                       ref=4, adjust = "Holm", by=NULL) -->
-<!-- contrasts -->
-<!-- ``` -->
 
 #### Full dataset, compare against control condition
 
@@ -1577,16 +947,32 @@ contrasts
 ### Plot
 
 ```{r}
-
 RT_state1_condition_df <- trial_df %>%
+  filter(phase == "test") %>%
+  group_by(condition) %>%
+  summarise(mean_RT = mean(RT),
+            se_RT = sd(RT, na.rm = TRUE)/sqrt(n()),
+            ci_l = ci(RT, na.rm=TRUE)[2],
+            ci_u = ci(RT, na.rm=TRUE)[3],
+            n=n())
+
+RT_state1_condition_df %>%
+  kable("html",
+        digits=2) %>%
+  kable_styling(font_size = 16,
+                latex_options = "scale_down")
+
+
+RT_state1_condition_df_gc <- trial_df %>%
   filter(phase == "test") %>%
   group_by(group, version, condition) %>%
   summarise(mean_RT = mean(RT),
             se_RT = sd(RT, na.rm = TRUE)/sqrt(n()),
             ci_l = ci(RT, na.rm=TRUE)[2],
-            ci_u = ci(RT, na.rm=TRUE)[3])
+            ci_u = ci(RT, na.rm=TRUE)[3],
+            n=n())
 
-RT_state1_condition_df %>%
+RT_state1_condition_df_gc %>%
   kable("html",
         digits=2) %>%
   kable_styling(font_size = 16,
@@ -1637,7 +1023,24 @@ linreg_test_rt_df <- trial_df %>%
          group = as.factor(group),
          version = as.factor(version),
          environment = as.factor(environment)) %>%
-  select(ID,
+  dplyr::select(ID,
+         RT,
+         condition,
+         group,
+         version,
+         environment)
+
+
+linreg_test_rt_lowrisk_control_df <- trial_df %>%
+  filter(phase == "test",
+         group == "Low-risk drinkers",
+         version == "Monetary version"
+         ) %>%
+  mutate(condition = as.factor(condition),
+         group = as.factor(group),
+         version = as.factor(version),
+         environment = as.factor(environment)) %>%
+  dplyr::select(ID,
          RT,
          condition,
          group,
@@ -1645,7 +1048,93 @@ linreg_test_rt_df <- trial_df %>%
          environment)
 ```
 
-#### Compared to transition revaluation
+#### Low-risk drinkers non-alcohol context, compare to transition revaluation
+
+```{r}
+contrasts(linreg_test_rt_lowrisk_control_df$condition) <- contr.treatment(5, base = 3)
+
+rt_test_transition_lowrisk_control_model <- lmer(data = linreg_test_rt_lowrisk_control_df,
+                                 RT ~ condition + (1 | ID),
+                                 control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)),
+                                 REML = FALSE)
+
+rt_test_transition_lowrisk_control_model_rs <- lmer(data = linreg_test_rt_lowrisk_control_df,
+                                 RT ~ condition + (1 + condition | ID),
+                                 control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)),
+                                 REML = FALSE)
+
+anova(rt_test_transition_lowrisk_control_model, rt_test_transition_lowrisk_control_model_rs)
+
+tab_model(rt_test_transition_lowrisk_control_model_rs, show.est = T, show.stat = T, show.df = T, df.method = "satterthwaite", auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+
+check_model(rt_test_transition_lowrisk_control_model_rs, check=c("pp_check", "reqq", "qq"))
+
+# rt_test_transition_lowrisk_control_model_rob <- rlmer(data = linreg_test_rt_lowrisk_control_df,
+#                                  RT ~ condition + (1 | ID),
+#                                  control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)),
+#                                  REML = FALSE)
+#saveRDS(rt_test_transition_lowrisk_control_model_rob, file=file.path(model_path, "rt_test_transition_lowrisk_control_model_rob.rds"))
+rt_test_transition_lowrisk_control_model_rob <- readRDS(file.path(model_path, "rt_test_transition_lowrisk_control_model_rob.rds"))
+
+# rt_test_transition_lowrisk_control_model_rs_rob <- rlmer(data = linreg_test_rt_lowrisk_control_df,
+#                                  RT ~ condition + (1 + condition | ID),
+#                                  control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)),
+#                                  REML = FALSE)
+# saveRDS(rt_test_transition_lowrisk_control_model_rs_rob, file=file.path(model_path, "rt_test_transition_lowrisk_control_model_rs_rob.rds"))
+rt_test_transition_lowrisk_control_model_rs_rob <- readRDS(file.path(model_path, "rt_test_transition_lowrisk_control_model_rs_rob.rds"))
+
+tab_model(rt_test_transition_lowrisk_control_model_rs_rob, show.est = T, show.stat = T, show.df = T, df.method = "wald", auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+
+#confint<-confintROB(rt_test_transition_lowrisk_control_model_rs_rob, parm=c(1:5), level=0.95, method="boot", boot.type = "parametric")
+#saveRDS(confint, file=file.path(model_path, "confint_rt_test_transition_lowrisk_control_model_rs_rob.rds"))
+confint <- readRDS(file.path(model_path, "confint_rt_test_transition_lowrisk_control_model_rs_rob.rds"))
+confint
+```
+
+#### Low-risk drinkers non-alcohol context, compare to reward revaluation
+
+```{r}
+contrasts(linreg_test_rt_lowrisk_control_df$condition) <- contr.treatment(5, base = 1)
+
+rt_test_reward_lowrisk_control_model <- lmer(data = linreg_test_rt_lowrisk_control_df,
+                                 RT ~ condition + (1 | ID),
+                                 control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)),
+                                 REML = FALSE)
+
+rt_test_reward_lowrisk_control_model_rs <- lmer(data = linreg_test_rt_lowrisk_control_df,
+                                 RT ~ condition + (1 + condition | ID),
+                                 control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)),
+                                 REML = FALSE)
+
+anova(rt_test_reward_lowrisk_control_model, rt_test_reward_lowrisk_control_model_rs)
+
+tab_model(rt_test_reward_lowrisk_control_model_rs, show.est = T, show.stat = T, show.df = T, df.method = "satterthwaite", auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+
+check_model(rt_test_reward_lowrisk_control_model_rs, check=c("pp_check", "reqq", "qq"))
+
+# rt_test_reward_lowrisk_control_model_rob <- rlmer(data = linreg_test_rt_lowrisk_control_df,
+#                                  RT ~ condition + (1 | ID),
+#                                  control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)),
+#                                  REML = FALSE)
+# saveRDS(rt_test_reward_lowrisk_control_model_rob, file=file.path(model_path, "rt_test_reward_lowrisk_control_model_rob.rds"))
+rt_test_reward_lowrisk_control_model_rob <- readRDS(file.path(model_path, "rt_test_reward_lowrisk_control_model_rob.rds"))
+
+# rt_test_reward_lowrisk_control_model_rs_rob <- rlmer(data = linreg_test_rt_lowrisk_control_df,
+#                                  RT ~ condition + (1 + condition | ID),
+#                                  control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)),
+#                                  REML = FALSE)
+# saveRDS(rt_test_reward_lowrisk_control_model_rs_rob, file=file.path(model_path, "rt_test_reward_lowrisk_control_model_rs_rob.rds"))
+rt_test_reward_lowrisk_control_model_rs_rob <- readRDS(file.path(model_path, "rt_test_reward_lowrisk_control_model_rs_rob.rds"))
+
+tab_model(rt_test_reward_lowrisk_control_model_rs_rob, show.est = T, show.stat = T, show.df = T, df.method = "wald", auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+
+#confint <- confintROB(rt_test_reward_lowrisk_control_model_rs_rob, parm=c(1:5), level=0.95, method="boot", boot.type = "parametric")
+#saveRDS(confint, file=file.path(model_path, "confint_rt_test_reward_lowrisk_control_model_rs_rob.rds"))
+confint <- readRDS(file.path(model_path, "confint_rt_test_reward_lowrisk_control_model_rs_rob.rds"))
+confint
+```
+
+#### Full sample, compare to transition revaluation
 
 ```{r}
 contrasts(linreg_test_rt_df$condition) <- contr.treatment(5, base = 3)
@@ -1682,17 +1171,13 @@ rt_test_transition_model_rob <- readRDS(file.path(model_path, "rt_test_transitio
 
 tab_model(rt_test_transition_model_rob, show.est = T, show.stat = T, show.df = T, df.method = "wald", auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
 
-confint1<-confintROB(rt_test_transition_model_rob, parm=c(1:20), level=0.95, method="boot", boot.type = "parametric")
+#confint1<-confintROB(rt_test_transition_model_rob, parm=c(1:20), level=0.95, method="boot", boot.type = "parametric")
+#saveRDS(confint1, file=file.path(model_path, "confint_rt_test_transition_model_rs_rob.rds"))
+confint1 <- readRDS(file.path(model_path, "confint_rt_test_transition_model_rs_rob.rds"))
 confint1
 ```
 
-<!-- ```{r} -->
-<!-- # get marginal means per version -->
-<!-- mmeans <- emmeans(rt_test_transition_model_rs, specs = ~ condition, type="response") -->
-<!-- mmeans -->
-<!-- ``` -->
-
-#### Compared to reward revaluation
+#### Full sample, compare to reward revaluation
 
 ```{r}
 contrasts(linreg_test_rt_df$condition) <- contr.treatment(5, base = 1)
@@ -1730,7 +1215,9 @@ rt_test_reward_model_rs_rob <- readRDS(file.path(model_path, "rt_test_reward_mod
 
 tab_model(rt_test_reward_model_rs_rob, show.est = T, show.stat = T, show.df = T, df.method = "wald", auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
 
-confint2<-confintROB(rt_test_reward_model_rob, parm=c(1:20), level=0.95, method="boot", boot.type = "parametric")
+#confint2<-confintROB(rt_test_reward_model_rob, parm=c(1:20), level=0.95, method="boot", boot.type = "parametric")
+#saveRDS(confint2, file=file.path(model_path, "confint_rt_test_reward_model_rs_rob.rds"))
+confint2 <- readRDS(file.path(model_path, "confint_rt_test_reward_model_rs_rob.rds"))
 confint2
 
 ```
@@ -1747,111 +1234,3 @@ contrasts <- contrast(mmeans,
                       adjust=NULL)
 contrasts 
 ```
-
-<!-- ## RT by correct path -->
-
-<!-- ### Plot -->
-
-<!-- ```{r} -->
-<!-- RT_path_df <- trial_df %>% -->
-<!--   mutate(switch_path = as.factor(switch_path)) %>% -->
-<!--   filter(phase == "test") %>% -->
-<!--   fill(switch_path) %>% -->
-<!--   group_by(group, version, condition, phase, switch_path) %>% -->
-<!--   summarise(mean_RT = mean(RT), -->
-<!--             se_RT = sd(RT, na.rm = TRUE)/sqrt(n()), -->
-<!--             ci_l = ci(RT, na.rm=TRUE)[2], -->
-<!--             ci_u = ci(RT, na.rm=TRUE)[3], -->
-<!--             n = n()) -->
-
-<!-- RT_path_df %>% -->
-<!--   kable("html") %>% -->
-<!--   kable_styling(font_size = 16, -->
-<!--                 latex_options = "scale_down") -->
-
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- RT_path_df <- trial_df %>% -->
-<!--   mutate(switch_path = as.factor(switch_path)) %>% -->
-<!--   filter(phase == "test") %>% -->
-<!--   fill(switch_path) -->
-
-<!-- ggplot(RT_path_df, aes(x=condition, y=RT, fill = switch_path)) + -->
-<!--   geom_boxplot() + -->
-<!--   scale_y_continuous(labels = scales::comma) + -->
-<!--   facet_grid(vars(group), vars(version)) + -->
-<!--   theme_light(base_size = 16) + -->
-<!--   ylab("Reaction times") + -->
-<!--   theme(axis.title.x=element_blank(), -->
-<!--         axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) + -->
-<!--   scale_fill_viridis("Changed state 1 action preference", option = "plasma", discrete = TRUE) -->
-
-<!-- ``` -->
-
-<!-- ### Linear regression -->
-
-<!-- ```{r} -->
-<!-- # Set contrasts -->
-<!-- contrasts(trial_df$group) <- contr.sum(2)*-0.5 -->
-<!-- contrasts(trial_df$version) <- contr.sum(2)*-0.5 -->
-<!-- ### contrast for condition changes from analysis to analysis -->
-
-<!-- linreg_test_rt_switchpath_df <- trial_df %>% -->
-<!--   filter(phase == "test" -->
-<!--          ) %>% -->
-<!--   fill(switch_path) %>% -->
-<!--   mutate(condition = as.factor(condition), -->
-<!--          group = as.factor(group), -->
-<!--          version = as.factor(version), -->
-<!--          environment = as.factor(environment), -->
-<!--          switch_path = as.factor(switch_path)) %>% -->
-<!--   select(ID, -->
-<!--          RT, -->
-<!--          condition, -->
-<!--          group, -->
-<!--          version, -->
-<!--          environment, -->
-<!--          switch_path) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- contrasts(linreg_test_rt_switchpath_df$condition) <- contr.treatment(5, base = 3) -->
-
-<!-- rt_correct_test_state1_reward_model <- lmer(data = linreg_test_rt_switchpath_df, -->
-<!--                                  RT ~ group*version*condition*switch_path + (1 | ID), -->
-<!--                                  control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)), -->
-<!--                                  REML = FALSE) -->
-
-<!-- # fails to converge -->
-<!-- rt_correct_test_state1_reward_model_rs <- lmer(data = linreg_test_rt_switchpath_df, -->
-<!--                                  RT ~ group*version*condition*switch_path + (1 + condition | ID), -->
-<!--                                  control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)), -->
-<!--                                  REML = FALSE) -->
-
-<!-- rt_correct_test_state1_reward_model_rs2 <- lmer(data = linreg_test_rt_switchpath_df, -->
-<!--                                  RT ~ group*version*condition*switch_path + (1 + condition + switch_path | ID), -->
-<!--                                  control=lmerControl(optimizer="bobyqa", optCtrl=list(maxfun=1e6)), -->
-<!--                                  REML = FALSE) -->
-
-<!-- anova(rt_correct_test_state1_reward_model, rt_correct_test_state1_reward_model_rs) -->
-
-<!-- tab_model(rt_correct_test_state1_reward_model_rs, show.est = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;')) -->
-
-<!-- ``` -->
-
-<!-- ###### Post-hoc tests -->
-
-<!-- ```{r} -->
-<!-- plot_model(rt_correct_test_state1_reward_model_rs2, type = "pred", terms = c("condition", "switch", "version", "group"), bias_correction = F) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- # get marginal means -->
-<!-- mmeans <- emmeans(rt_correct_test_state1_reward_model_rs2, ~ condition|switch*group*version) -->
-<!-- test(mmeans) -->
-
-<!-- # contrasts to reward per group and version -->
-<!-- contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=1, adjust="Holm") -->
-<!-- contrasts -->
-<!-- ``` -->

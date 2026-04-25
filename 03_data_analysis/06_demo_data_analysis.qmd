@@ -406,6 +406,7 @@ tab_model(model_casa_unaware, show.stat = T, show.df = T)
 
 ```{r}
 model_casa_nonvol <- lm(casa_gf_nonvolitional ~ group*version, data=demo_psych)
+summary(model_casa_nonvol)$coefficients
 tab_model(model_casa_nonvol, show.stat = T, show.df = T)
 ```
 

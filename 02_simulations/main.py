@@ -2,45 +2,47 @@
 # main.py
 #
 
-import sys
+import os
+import numpy as np
+import pandas as pd
 from os.path import join
 from simulate import *
 from utilities import *
 
-#
-# Constants
-#
-OUTPUT_DIR = "results"
-SUCCESS_COUNT_FILENAME = "success_counts.txt"
+# set seed for reproducibility
+np.random.seed(42)
 
 #
-# Parameters
+# Set simulation parameters
 #
 
-NUM_SIMULATIONS = 1000 # number of participants to simulate
-MODELS = [#"full_sr", 
-          #"reduced_sr"
-          # "model_based", 
-          # "model_free",
-          # "reduced_sr_2goalstates",
-          "reduced_sr_4goalstates",
-          # "random_sr_from_mb_wTD_wnoupdate",
-          # "random_sr_from_mb_wTD_wfeat",
-          # "random_sr_from_mb_wTD_wfeatMfeat",
-          # "random_reduced_sr_1goalstate_from_mb_wTD_wfeat",
-          # "random_reduced_sr_1goalstate_from_mb_wTD_wfeat_late",
-          # "random_reduced_sr_2goalstates_from_mb_wTD_wfeat",
-          # "random_reduced_sr_2goalstates_from_mb_wTD_wfeat_late",
-          "random_reduced_sr_4goalstates_from_mb_wTD_wfeat",
-          "random_reduced_sr_4goalstates_from_mb_wTD_wfeat_late"
-          # "model_based_learnt"
-          ] # "full_sr", "reduced_sr", "model_based", "model_free", "random_sr_from_mb_wTD_wfeatMfeat", "random_sr_from_mb_wTD_wnoupdate" "model_based_learnt"
+SIMULATION_MODE = "ppc" # "fixed" for multiple simulations from same set of manually defined parameter values; "ppc" for posterior predictive checks; "recovery" for one single simulation from set of parameter values drawn from distribution
+                                                                                                                                                                                                                                                                                                        
+MODELS = [#"sr", 
+          #"mb", 
+          #"mf",
+          #"redsr_2",
+          #"redsr_3",
+          #"redsr_4",
+          "randsr_noupdate",
+          #"randsr_wupdate",
+          #"redsr_2_randsr_wupdate",
+          #"redsr_3_randsr_wupdate",
+          #"redsr_4_randsr_wupdate",
+          #"mb_learnt",
+          #"hybrid_mf_redsr_4_randsr_wupdate",
+          "hybrid_mf_randsr_noupdate",
+          #"hybrid_mf_randsr_wupdate",
+          #"hybrid_mf_mb_learnt"
+          ]
+
 CONDITIONS = ["control", "reward", "transition", "policy", "goal"] # "control", "reward", "transition", "policy", "goal"
 
-ALPHA_TD = [0.5]
-ALPHA_M = [0.5]
-GAMMA = [0.9]
-BETA = 1
+if SIMULATION_MODE == "fixed":
+    OUTPUT_DIR = "results_fixed"
+elif SIMULATION_MODE == "ppc":
+    OUTPUT_DIR = "results_ppc"
+    INPUT_FILE = "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/SR_in_AUD_behav/04_model_fit/results_real_data/model_fit_per_participant_lbfgsb.csv"
 
 #
 # Transition Log Headers
@@ -83,6 +85,9 @@ def get_transition_log_headers():
     value_strings = [f"V{item}" for item in state_action_strings]
     value_strings_joined = ",".join(value_strings)
 
+    mf_value_strings = [f"MFV{item}" for item in state_action_strings]
+    mf_value_strings_joined = ",".join(mf_value_strings)
+
     weight_strings = [f"W{item}" for item in state_action_strings]
     weight_strings_joined = ",".join(weight_strings)
 
@@ -104,120 +109,175 @@ def get_transition_log_headers():
     transition_strings = [f"T{item}" for item in state_action_state_strings]
     transition_strings_joined = ",".join(transition_strings)
 
-    transition_log_headers["full_sr"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["full_sr_forcedonly"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
+    transition_log_headers["sr"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
     
-    transition_log_headers["random_sr_from_mb_wTD_wnoupdate"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["random_sr_from_mb_wTD_wnoupdate_late"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["random_sr_from_mb_wTD_wfeat"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["random_sr_from_mb_wTD_wfeat_late"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["random_sr_from_mb_wTD_wfeatMfeat"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["random_sr_from_mb_wTD_wfeatMfeat_late"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
+    transition_log_headers["randsr_noupdate"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
+    transition_log_headers["randsr_wupdate"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
     
-    transition_log_headers["reduced_sr"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["reduced_sr_2goalstates"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["reduced_sr_4goalstates"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
+    transition_log_headers["redsr_2"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
+    transition_log_headers["redsr_3"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
+    transition_log_headers["redsr_4"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
     
-    transition_log_headers["random_reduced_sr_1goalstate_from_mb_wTD_wfeat"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["random_reduced_sr_1goalstate_from_mb_wTD_wfeat_late"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["random_reduced_sr_2goalstates_from_mb_wTD_wfeat"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["random_reduced_sr_2goalstates_from_mb_wTD_wfeat_late"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["random_reduced_sr_4goalstates_from_mb_wTD_wfeat"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
-    transition_log_headers["random_reduced_sr_4goalstates_from_mb_wTD_wfeat_late"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
+    transition_log_headers["redsr_2_randsr_wupdate"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
+    transition_log_headers["redsr_3_randsr_wupdate"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
+    transition_log_headers["redsr_4_randsr_wupdate"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{occupancy_strings_joined}\n"
+
+    transition_log_headers["hybrid_mf_redsr_4_randsr_wupdate"] = (
+        f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},"
+        f"{occupancy_strings_joined},{mf_value_strings_joined}\n"
+    )
+    transition_log_headers["hybrid_mf_randsr_noupdate"] = (
+        f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},"
+        f"{occupancy_strings_joined},{mf_value_strings_joined}\n"
+    )
+    transition_log_headers["hybrid_mf_randsr_wupdate"] = (
+        f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},"
+        f"{occupancy_strings_joined},{mf_value_strings_joined}\n"
+    )
     
-    transition_log_headers["model_based"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{transition_strings_joined}\n"
-    transition_log_headers["model_based_learnt"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{transition_strings_joined}\n"
+    transition_log_headers["mb"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{transition_strings_joined}\n"
+    transition_log_headers["mb_learnt"] = f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},{transition_strings_joined}\n"
+    transition_log_headers["hybrid_mf_mb_learnt"] = (
+        f"{TRANSITION_LOG_HEADER_PREFIX},weight_delta,{value_strings_joined},{weight_strings_joined},"
+        f"{transition_strings_joined},{mf_value_strings_joined}\n"
+    )
     
-    transition_log_headers["model_free"] = f"{TRANSITION_LOG_HEADER_PREFIX},{value_strings_joined}\n"
+    transition_log_headers["mf"] = f"{TRANSITION_LOG_HEADER_PREFIX},{value_strings_joined}\n"
 
     return transition_log_headers
-
-#
-# Main
-#
-def main(num_simulations, models, conditions, alpha_td, alpha_m, beta, gamma):
-    """
-    Runs several simulations for each model and writes results to OUTPUT_DIR.
-
-    Arguments:
-        - num_simulations: int, number of simulations to run on each (model, condition) pair
-        - models: [str], list of model names
-        - models: [str], list of condition names
-    """
-
-    success_counts = []
-    transition_log_headers = get_transition_log_headers()
-
-    for model in models:
-        model_simulation_results = []
-
-        for condition in conditions:
-            print(f"> Simulating model {GREEN}{format_model(model)}{RESET} for condition {GREEN}{format_condition(condition)}{RESET} ...")
-            
-            # Simulation results per model and condition: [SimulationResult]
-            simulation_results, alpha_td, alpha_m, beta, gamma = run_simulations(model, condition, num_simulations, alpha_td, alpha_m, beta, gamma)
-
-            successful_learning_results = [result for result in simulation_results if result.learning_test_result == True]
-
-            num_successful_learning_tests = len(successful_learning_results)
-
-            num_successful_relearning_tests = len(
-                [result for result in successful_learning_results if result.relearning_test_result == True]
-            )
-
-            success_counts.append({
-                "model": model,
-                "condition": condition,
-                "num_successful_learning_tests": num_successful_learning_tests,
-                "total_learning_tests": num_simulations,
-                "learning_percentage": f"{safe_divide(num_successful_learning_tests, num_simulations) * 100:0,.0f}",
-                "num_successful_relearning_tests": num_successful_relearning_tests,
-                "total_relearning_tests": num_successful_learning_tests,
-                "relearning_percentage": f"{safe_divide(num_successful_relearning_tests, num_successful_learning_tests) * 100:0,.0f}"
-            })
-
-            # Add to simulation results per model for all conditions
-            model_simulation_results.extend(simulation_results)
-
-        # Write model simulation results to .csv file
-        model_simulation_results_filepath = join(OUTPUT_DIR, f"{model}_nsimulations{num_simulations}_alpha_td{alpha_td}_alpha_m{alpha_m}_beta{beta}_gamma{gamma}.csv")
-
-        print(f"> Writing transition log to {GREEN}{model_simulation_results_filepath}{RESET} ...")
-        with open(model_simulation_results_filepath, "w") as model_simulation_results_file:
-            # Write csv header
-            model_simulation_results_file.write(transition_log_headers[model])
-
-            # Write csv rows
-            transition_log_lines = flatten([result.transition_log for result in model_simulation_results])
-            model_simulation_results_file.writelines(
-                suffix_all(transition_log_lines, "\n")
-            )
-
-            print("> Done\n")
-
-    # Write success counts to .txt file
-    success_count_filepath = join(OUTPUT_DIR, SUCCESS_COUNT_FILENAME)
-
-    print(f"> Writing success counts to {GREEN}{success_count_filepath}{RESET} ...")
-    with open(success_count_filepath, "w") as success_count_file:
-        for dictionary in success_counts:
-            success_count_file.writelines([
-                f"{format_model(dictionary['model'])}, {format_condition(dictionary['condition'])}:\n",
-                f"    - Learning: {dictionary['num_successful_learning_tests']} / {dictionary['total_learning_tests']} ({dictionary['learning_percentage']}%)\n",
-                f"    - Relearning: {dictionary['num_successful_relearning_tests']} / {dictionary['total_relearning_tests']} ({dictionary['relearning_percentage']}%)\n\n"
-            ])
-
-        print("> Done\n")
-        
 
 ### EXECUTION: Iterate through parameter values indicated above ###
 if __name__ == "__main__":
     
-    for index, a_m in enumerate(ALPHA_M):
-        for a_td in ALPHA_TD:
-        #a_td = ALPHA_TD[index] # index for all models, 0 for MB learnt
-            for g in GAMMA:
-                main(num_simulations=NUM_SIMULATIONS, models=MODELS, conditions=CONDITIONS, alpha_td=a_td, alpha_m=a_m, beta=BETA, gamma=g)
-####################################################################
+    if SIMULATION_MODE == "fixed":
+
+        # Set number of simulations per parameter combination and model
+        NUM_SIMULATIONS = 1000
         
+        # Set parameter values to iterate over
+        ALPHA_TD = [0.1, 0.3, 0.5, 0.7, 0.9]
+        ALPHA_M = [0.1, 0.3, 0.5, 0.7, 0.9]
+        GAMMA = [0.1, 0.3, 0.5, 0.7, 0.9]
+        BETA = 1
+
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        transition_log_headers = get_transition_log_headers()
+
+        for MODEL in MODELS:
+
+            for index, a_m in enumerate(ALPHA_M):
+            
+                for a_td in ALPHA_TD:
+                    
+                    if MODEL != "mb_learnt":
+                        a_td = ALPHA_TD[index] # index for all models, comment out for MB learnt
+                        
+                    for g in GAMMA:
+                        
+                        model_simulation_results = []
+
+                        for condition in CONDITIONS:
+                            print(
+                                f"> Simulating model {GREEN}{format_model(MODEL)}{RESET} "
+                                f"for condition {GREEN}{format_condition(condition)}{RESET} ..."
+                            )
+
+                            # Run simulations
+                            simulation_results = run_simulations(SIMULATION_MODE, MODEL, condition, NUM_SIMULATIONS, a_td, a_m, BETA, g)
+
+                            # Add to simulation results per model for all conditions
+                            model_simulation_results.extend(simulation_results)
+
+                        # Write model simulation results per model to .csv file
+                        model_simulation_results_filepath = join(
+                            OUTPUT_DIR,
+                            f"{MODEL}_nsimulations{NUM_SIMULATIONS}_alpha_td{a_td}_alpha_m{a_m}_beta{BETA}_gamma{g}.csv",
+                        )
+
+                        print(f"> Writing transition log to {GREEN}{model_simulation_results_filepath}{RESET} ...")
+                        with open(model_simulation_results_filepath, "w") as model_simulation_results_file:
+                            model_simulation_results_file.write(transition_log_headers[MODEL])
+                            transition_log_lines = flatten(
+                                [result.transition_log for result in model_simulation_results]
+                            )
+                            model_simulation_results_file.writelines(suffix_all(transition_log_lines, "\n"))
+                        print("> Done\n")
+
+    if SIMULATION_MODE == "ppc":
+
+        # Set number of simulations per parameter combination
+        NUM_SIMULATIONS = 1
+        
+        # Load fitted parameters per participant and model
+        individual_parameters = pd.read_csv(INPUT_FILE)
+        participants = individual_parameters["subject"].unique()
+
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        transition_log_headers = get_transition_log_headers()
+
+        for MODEL in MODELS:
+
+            print(
+                f"> Simulating model {GREEN}{format_model(MODEL)}{RESET} "
+            )
+
+            model_rows = individual_parameters.loc[individual_parameters["agent_type"] == MODEL]
+
+            combined_outfile = join(OUTPUT_DIR, f"{MODEL}_ppc_allparticipants.csv")
+            print(f"> Writing combined PPC file to {GREEN}{combined_outfile}{RESET} ...")
+
+            with open(combined_outfile, "w") as out_f:
+                # Write csv header
+                out_f.write(f"participant_id,{transition_log_headers[MODEL]}")
+
+                for participant in participants:
+
+                    print(
+                        f"for participant {GREEN}{format_condition(participant)}{RESET}"
+                    )
+
+                    participant_row = model_rows.loc[model_rows["subject"] == participant]
+
+                    ALPHA_TD = participant_row["alpha_rwq"].iloc[0]
+                    ALPHA_M = participant_row["alpha_mt"].iloc[0]
+                    GAMMA = participant_row["gamma"].iloc[0]
+                    BETA = 1
+                    MIX_W = None
+                    if MODEL in (
+                        "hybrid_mf_redsr_4_randsr_wupdate",
+                        "hybrid_mf_randsr_noupdate",
+                        "hybrid_mf_randsr_wupdate",
+                        "hybrid_mf_mb_learnt",
+                    ):
+                        MIX_W = float(participant_row["w"].iloc[0])
+
+                    # Run each condition and append to one big file per model.
+                    for condition in CONDITIONS:
+
+                        print(
+                            f"for condition {GREEN}{format_condition(condition)}{RESET} ..."
+                        )
+
+                        try:
+                            simulation_results = run_simulations(
+                                SIMULATION_MODE, MODEL, condition, NUM_SIMULATIONS, ALPHA_TD, ALPHA_M, BETA, GAMMA, MIX_W
+                            )
+                        except FloatingPointError as e:
+                            print(
+                                f"Skipping participant {participant} for condition {format_condition(condition)} "
+                                f"due to numerical issue: {e}"
+                            )
+                            simulation_results = None
+                            break
+                        
+                        transition_log_lines = flatten([result.transition_log for result in simulation_results])
+
+                        for line in transition_log_lines:
+                            # Keep the simulation_number generated by run_simulations (per participant & model)
+                            out_f.write(f"{participant},{line}\n")
+
+            print("> Done\n")
+
+    
+    
         

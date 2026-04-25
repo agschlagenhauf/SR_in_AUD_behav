@@ -1,0 +1,720 @@
+---
+title: "Visualize simulations based on individually fitted model parameters"
+author: "Milena Musial"
+format: html
+editor: visual
+---
+
+# Preparation
+
+```{r}
+rm(list = ls(all = TRUE))
+
+# Load packages
+packages <- c("ggplot2", "dplyr", "tidyr", "kableExtra", "gmodels", "lme4", "sjPlot", "viridis", "forcats", "lmerTest", "car", "ggpubr", "ggpattern")
+#install.packages(packages)
+sapply(packages, require, character.only = TRUE)
+
+# Define paths
+data_path <- "~/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/SR_in_AUD_behav/02_simulations/results_ppc"
+real_data_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/WP3_DATA/FINAL_STUDY/RDFs"
+figure_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/Project_Docs/Figures/behavioral"
+
+# Load real data
+load(file.path(real_data_path, "final_data_included.RData"))
+
+group_version_df <- trial_df %>%
+  dplyr::select(ID, group, version) %>%
+  unique() %>%
+  rename("participant_id" = "ID")
+
+test_correct_paths_condition_df <- trial_df %>%
+  filter(phase == "test",
+         group == "Low-risk drinkers",
+         version == "Monetary version",
+         state %in% c(1)
+         ) %>%
+  mutate(version = dplyr::recode(version,
+                          "Monetary version" = "Non-alcohol context",
+                          "Alcohol version" = "Alcohol context"),
+         group = dplyr::recode(group,
+                          "Low-risk drinkers" = "Low-risk drinkers",
+                          "Harmful drinkers" = "High-risk drinkers")) %>%
+  group_by(condition) %>%
+  summarise(mean_switch = mean(switch_path, na.rm = TRUE),
+            se_switch = sd(switch_path, na.rm = TRUE)/sqrt(n()),
+            ci_l = ci(switch_path, na.rm=TRUE)[2],
+            ci_u = ci(switch_path, na.rm=TRUE)[3],
+            n = n()
+            )
+test_correct_paths_condition_df$Condition <- test_correct_paths_condition_df$condition
+
+test_correct_paths_condition_all_df <- trial_df %>%
+  filter(phase == "test",
+         state %in% c(1)
+         ) %>%
+  mutate(version = dplyr::recode(version,
+                          "Monetary version" = "Non-alcohol context",
+                          "Alcohol version" = "Alcohol context"),
+         group = dplyr::recode(group,
+                          "Low-risk drinkers" = "Low-risk drinkers",
+                          "Harmful drinkers" = "High-risk drinkers")) %>%
+  group_by(condition) %>%
+  summarise(mean_switch = mean(switch_path, na.rm = TRUE),
+            se_switch = sd(switch_path, na.rm = TRUE)/sqrt(n()),
+            ci_l = ci(switch_path, na.rm=TRUE)[2],
+            ci_u = ci(switch_path, na.rm=TRUE)[3],
+            n = n()
+            )
+test_correct_paths_condition_all_df$Condition <- test_correct_paths_condition_all_df$condition
+
+test_correct_paths_condition_gc_df <- trial_df %>%
+  filter(phase == "test",
+         state %in% c(1)
+         ) %>%
+  mutate(version = dplyr::recode(version,
+                          "Monetary version" = "Non-alcohol context",
+                          "Alcohol version" = "Alcohol context"),
+         group = dplyr::recode(group,
+                          "Low-risk drinkers" = "Low-risk drinkers",
+                          "Harmful drinkers" = "High-risk drinkers")) %>%
+  group_by(group, version, condition) %>%
+  summarise(mean_switch = mean(switch_path, na.rm = TRUE),
+            se_switch = sd(switch_path, na.rm = TRUE)/sqrt(n()),
+            ci_l = ci(switch_path, na.rm=TRUE)[2],
+            ci_u = ci(switch_path, na.rm=TRUE)[3],
+            n = n()
+            )
+test_correct_paths_condition_gc_df$Condition <- test_correct_paths_condition_gc_df$condition
+
+```
+
+# Define functions: Filter based on values and last 5 learning trials
+
+```{r}
+# define function to get learning performance
+filter_model_df_learning <- function(df) {
+
+  # get simulation numbers that had less than 3 out of the last 5 learning trials correct
+  last5_3incorrect <- df %>%
+    dplyr::select(model, participant_id, simulation_number, condition, phase, trial, state, action, reward) %>%
+    filter(phase %in% c("learning")) %>%
+    mutate(correct_path = case_when((state == 1 & action == 2 & lead(action) == 2) ~ 1,
+                                     (state == 1 & action == 2 & lead(action) == 1) ~ 0,
+                                     (state == 1 & action == 1) ~ 0)) %>%
+    filter(state=="1") %>%
+    group_by(model, participant_id, simulation_number, condition) %>%
+    slice_tail(n = 5) %>%
+    summarise(sum_correct = sum(correct_path)) %>%
+    filter(sum_correct < 3) %>%
+    mutate(model_subj_cond_sim = paste(model, "_", participant_id, "_", simulation_number, "_", condition, sep=""))
+
+
+  df %>%
+    dplyr::select(model, participant_id, simulation_number, condition, phase, trial, state, action, reward) %>%
+    mutate(model_subj_cond_sim = paste(model, "_", participant_id, "_", simulation_number, "_", condition, sep="")) %>%
+    filter(phase %in% c("learning_test")) %>%
+    mutate(correct_path = case_when((state == 1 &
+                                       action == 2 &
+                                       lead(action) == 2 &
+                                       !participant_id %in% last5_3incorrect$participant_id) ~ 1,
+                                    (state == 1 &
+                                       action == 2 &
+                                       lead(action) == 2 &
+                                       participant_id %in% last5_3incorrect$participant_id) ~ 0,
+                                    (state == 1 &
+                                        action == 2 &
+                                        lead(action) == 1) ~ 0,
+                                    (state == 1 &
+                                        action == 1) ~ 0)) %>%
+    filter(state=="1") %>%
+    mutate(condition = case_when(
+        condition == "reward" ~ "Reward revaluation",
+        condition == "transition" ~ "Transition revaluation",
+        condition == "goal" ~ "Goal-state revaluation",
+        condition == "policy" ~ "Policy revaluation",
+        condition == "control" ~ "Control")) %>%
+    mutate(condition = fct_relevel(as.factor(condition),
+                                   c("Reward revaluation",
+                                     "Goal-state revaluation",
+                                     "Transition revaluation",
+                                     "Policy revaluation",
+                                     "Control")))
+}
+
+
+# define function to get revaluation performance
+filter_model_df_revaluation <- function(df) {
+
+  last5_3incorrect <- df %>%
+    dplyr::select(model, participant_id, simulation_number, condition, phase, trial, state, action, reward) %>%
+    filter(phase %in% c("learning")) %>%
+    mutate(correct_path = case_when((state == 1 & action == 2 & lead(action) == 2) ~ 1,
+                                     (state == 1 & action == 2 & lead(action) == 1) ~ 0,
+                                     (state == 1 & action == 1) ~ 0)) %>%
+    filter(state=="1") %>%
+    group_by(model, participant_id, simulation_number, condition) %>%
+    slice_tail(n = 5) %>%
+    summarise(sum_correct = sum(correct_path)) %>%
+    filter(sum_correct < 3) %>%
+    mutate(model_subj_cond_sim = paste(model, "_", participant_id, "_", simulation_number, "_", condition, sep=""))
+
+  correct_learning_df <- df %>%
+    dplyr::select(model, participant_id, simulation_number, condition, phase, trial, state, action, reward) %>%
+    mutate(model_subj_cond_sim = paste(model, "_", participant_id, "_", simulation_number, "_", condition, sep="")) %>%
+    filter(phase %in% c("learning_test")) %>%
+    mutate(correct_path = case_when((state == 1 &
+                                       action == 2 &
+                                       lead(action) == 2 &
+                                       !participant_id %in% last5_3incorrect$participant_id) ~ 1,
+                                    (state == 1 &
+                                       action == 2 &
+                                       lead(action) == 2 &
+                                       participant_id %in% last5_3incorrect$participant_id) ~ 0,
+                                    (state == 1 &
+                                        action == 2 &
+                                        lead(action) == 1) ~ 0,
+                                    (state == 1 &
+                                        action == 1) ~ 0)) %>%
+    filter(state=="1" & correct_path == 1) %>%
+    mutate(condition = case_when(
+        condition == "reward" ~ "Reward revaluation",
+        condition == "transition" ~ "Transition revaluation",
+        condition == "goal" ~ "Goal-state revaluation",
+        condition == "policy" ~ "Policy revaluation",
+        condition == "control" ~ "Control")) %>%
+    mutate(condition = fct_relevel(as.factor(condition),
+                                   c("Reward revaluation",
+                                     "Goal-state revaluation",
+                                     "Transition revaluation",
+                                     "Policy revaluation",
+                                     "Control")))
+
+  df %>%
+    dplyr::select(model, participant_id, simulation_number, condition, phase, trial, state, action, reward) %>%
+    mutate(model_subj_cond_sim = paste(model, "_", participant_id, "_", simulation_number, "_", condition, sep="")) %>%
+    filter(phase %in% c("relearning_test")) %>%
+    filter(participant_id %in% correct_learning_df$participant_id) %>%
+    mutate(correct_path = case_when((condition == "control" & state == 1 & action == 2 & lead(action) == 2) ~ 1,
+                                     (condition == "control" & state == 1 & action == 2 & lead(action) == 1) ~ 0,
+                                     (condition == "control" & state == 1 & action == 1) ~ 0,
+
+                                     (condition != "control" & state == 1 & action == 1 & lead(action) == 1) ~ 1,
+                                     (condition != "control" & state == 1 & action == 1 & lead(action) == 2) ~ 0,
+                                     (condition != "control" & state == 1 & action == 2) ~ 0)) %>%
+    filter(state=="1") %>%
+    mutate(switch_path = case_when(condition == "control" & correct_path == 1 ~ 0,
+                                   condition == "control" & correct_path == 0 ~ 1,
+                                   condition != "control" & correct_path == 1 ~ 1,
+                                   condition != "control" & correct_path == 0 ~ 0)) %>%
+    mutate(condition = case_when(
+        condition == "reward" ~ "Reward revaluation",
+        condition == "transition" ~ "Transition revaluation",
+        condition == "goal" ~ "Goal-state revaluation",
+        condition == "policy" ~ "Policy revaluation",
+        condition == "control" ~ "Control")) %>%
+    mutate(condition = fct_relevel(as.factor(condition),
+                                   c("Reward revaluation",
+                                     "Goal-state revaluation",
+                                     "Transition revaluation",
+                                     "Policy revaluation",
+                                     "Control")))
+}
+```
+
+# Load and format dfs
+
+```{r}
+sr_df <- read.csv(file.path(data_path, "sr_ppc_allparticipants.csv"))
+mb_df <- read.csv(file.path(data_path, "mb_ppc_allparticipants.csv"))
+mf_df <- read.csv(file.path(data_path, "mf_ppc_allparticipants.csv"))
+redsr_2_df <- read.csv(file.path(data_path, "redsr_2_ppc_allparticipants.csv"))
+redsr_3_df <- read.csv(file.path(data_path, "redsr_2_ppc_allparticipants.csv"))
+redsr_4_df <- read.csv(file.path(data_path, "redsr_2_ppc_allparticipants.csv"))
+randsr_noupdate_df <- read.csv(file.path(data_path, "randsr_noupdate_ppc_allparticipants.csv"))
+randsr_wupdate_df <- read.csv(file.path(data_path, "randsr_wupdate_ppc_allparticipants.csv"))
+redsr_2_randsr_wupdate_df <- read.csv(file.path(data_path, "redsr_2_randsr_wupdate_ppc_allparticipants.csv"))
+redsr_3_randsr_wupdate_df <- read.csv(file.path(data_path, "redsr_3_randsr_wupdate_ppc_allparticipants.csv"))
+redsr_4_randsr_wupdate_df <- read.csv(file.path(data_path, "redsr_4_randsr_wupdate_ppc_allparticipants.csv"))
+mb_learnt_df <- read.csv(file.path(data_path, "mb_learnt_ppc_allparticipants.csv"))
+hybrid_mf_redsr_4_randsr_wupdate_df <- read.csv(file.path(data_path, "hybrid_mf_redsr_4_randsr_wupdate_ppc_allparticipants.csv"))
+hybrid_mf_randsr_noupdate_df <- read.csv(file.path(data_path, "hybrid_mf_randsr_noupdate_ppc_allparticipants.csv"))
+hybrid_mf_randsr_wupdate_df <- read.csv(file.path(data_path, "hybrid_mf_randsr_wupdate_ppc_allparticipants.csv"))
+hybrid_mf_mb_learnt_df <- read.csv(file.path(data_path, "hybrid_mf_mb_learnt_ppc_allparticipants.csv"))
+
+# Learning dfs
+sr_df_learning <- filter_model_df_learning(sr_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "SR")
+
+mb_df_learning <- filter_model_df_learning(mb_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "MB")
+
+mf_df_learning <- filter_model_df_learning(mf_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "MF")
+
+redsr_2_df_learning <- filter_model_df_learning(redsr_2_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "RedSR (2 goals)")
+
+redsr_3_df_learning <- filter_model_df_learning(redsr_3_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "RedSR (3 goals)")
+
+redsr_4_df_learning <- filter_model_df_learning(redsr_4_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "RedSR (4 goals)")
+
+randsr_noupdate_df_learning <- filter_model_df_learning(randsr_noupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Random-policy SR (rigid M & w)")
+
+randsr_wupdate_df_learning <- filter_model_df_learning(randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Random-policy SR (rigid M)")
+
+redsr_2_randsr_wupdate_df_learning <- filter_model_df_learning(redsr_2_randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Reduced random-policy SR (2 goals)")
+
+redsr_3_randsr_wupdate_df_learning <- filter_model_df_learning(redsr_3_randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Reduced random-policy SR (3 goals)")
+
+redsr_4_randsr_wupdate_df_learning <- filter_model_df_learning(redsr_4_randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Reduced random-policy SR (4 goals)")
+
+mb_learnt_df_learning <- filter_model_df_learning(mb_learnt_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "MB with α(R) & α(T)")
+
+hybrid_mf_redsr_4_randsr_wupdate_df_learning <- filter_model_df_learning(hybrid_mf_redsr_4_randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Hybrid MF-reduced random-policy SR (4 goals)")
+
+hybrid_mf_randsr_noupdate_df_learning <- filter_model_df_learning(hybrid_mf_randsr_noupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Hybrid MF-random-policy SR (rigid M & w)")
+
+hybrid_mf_randsr_wupdate_df_learning <- filter_model_df_learning(hybrid_mf_randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Hybrid MF-random-policy SR (rigid M)")
+
+hybrid_mf_mb_learnt_df_learning <- filter_model_df_learning(hybrid_mf_mb_learnt_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Hybrid MF-MB with α(R) & α(T)")
+
+
+# Revaluation dfs
+sr_df_revaluation <- filter_model_df_revaluation(sr_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "SR")
+
+mb_df_revaluation <- filter_model_df_revaluation(mb_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "MB")
+
+mf_df_revaluation <- filter_model_df_revaluation(mf_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "MF")
+
+redsr_2_df_revaluation <- filter_model_df_revaluation(redsr_2_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "RedSR (2 goals)")
+
+redsr_3_df_revaluation <- filter_model_df_revaluation(redsr_3_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "RedSR (3 goals)")
+
+redsr_4_df_revaluation <- filter_model_df_revaluation(redsr_4_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "RedSR (4 goals)")
+
+randsr_noupdate_df_revaluation <- filter_model_df_revaluation(randsr_noupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Random-policy SR (rigid M & w)")
+
+randsr_wupdate_df_revaluation <- filter_model_df_revaluation(randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Random-policy SR (rigid M)")
+
+redsr_2_randsr_wupdate_df_revaluation <- filter_model_df_revaluation(redsr_2_randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Reduced random-policy SR (2 goals)")
+
+redsr_3_randsr_wupdate_df_revaluation <- filter_model_df_revaluation(redsr_3_randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Reduced random-policy SR (3 goals)")
+
+redsr_4_randsr_wupdate_df_revaluation <- filter_model_df_revaluation(redsr_4_randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Reduced random-policy SR (4 goals)")
+
+mb_learnt_df_revaluation <- filter_model_df_revaluation(mb_learnt_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "MB with α(R) & α(T)")
+
+hybrid_mf_redsr_4_randsr_wupdate_df_revaluation <- filter_model_df_revaluation(hybrid_mf_redsr_4_randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Hybrid MF-reduced random-policy SR (4 goals)")
+
+hybrid_mf_randsr_noupdate_df_revaluation <- filter_model_df_revaluation(hybrid_mf_randsr_noupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Hybrid MF-random-policy SR (rigid M & w)")
+
+hybrid_mf_randsr_wupdate_df_revaluation <- filter_model_df_revaluation(hybrid_mf_randsr_wupdate_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Hybrid MF-random-policy SR (rigid M)")
+
+hybrid_mf_mb_learnt_df_revaluation <- filter_model_df_revaluation(hybrid_mf_mb_learnt_df) %>%
+  rename("Condition" = "condition",
+         "Model" = "model") %>%
+  mutate(Model = "Hybrid MF-MB with α(R) & α(T)")
+```
+
+# Merge dfs
+
+```{r}
+df_learning <- rbind(sr_df_learning, mb_df_learning, mf_df_learning, redsr_2_df_learning, redsr_3_df_learning, redsr_4_df_learning, randsr_noupdate_df_learning, randsr_wupdate_df_learning, redsr_2_randsr_wupdate_df_learning, redsr_3_randsr_wupdate_df_learning, redsr_4_randsr_wupdate_df_learning, mb_learnt_df_learning, hybrid_mf_redsr_4_randsr_wupdate_df_learning, hybrid_mf_randsr_noupdate_df_learning, hybrid_mf_randsr_wupdate_df_learning, hybrid_mf_mb_learnt_df_learning)
+
+df_learning <- merge(df_learning, group_version_df, by="participant_id")
+
+df_learning <- df_learning %>%
+  mutate(Model = factor(Model, 
+                        levels = c(
+                          "Hybrid MF-MB with α(R) & α(T)",
+                          "Hybrid MF-random-policy SR (rigid M & w)",
+                          "Hybrid MF-reduced random-policy SR (4 goals)",
+                          "Hybrid MF-random-policy SR (rigid M)",
+                          "Reduced random-policy SR (4 goals)",
+                          "Reduced random-policy SR (3 goals)",
+                          "Reduced random-policy SR (2 goals)",
+                          "Random-policy SR (rigid M)",
+                          "Random-policy SR (rigid M & w)",
+                          "MB with α(R) & α(T)",
+                          "RedSR (4 goals)",
+                          "RedSR (3 goals)",
+                          "RedSR (2 goals)",
+                          "SR",
+                          "MB",
+                          "MF"
+  ))) %>%
+  mutate(version = dplyr::recode(version,
+                          "Monetary version" = "Non-alcohol context",
+                          "Alcohol version" = "Alcohol context"),
+         group = dplyr::recode(group,
+                          "Low-risk drinkers" = "Low-risk drinkers",
+                          "Harmful drinkers" = "High-risk drinkers"))
+
+df_revaluation <- rbind(sr_df_revaluation, mb_df_revaluation, mf_df_revaluation, redsr_2_df_revaluation, redsr_3_df_revaluation, redsr_4_df_revaluation, randsr_noupdate_df_revaluation, randsr_wupdate_df_revaluation, redsr_2_randsr_wupdate_df_revaluation, redsr_3_randsr_wupdate_df_revaluation, redsr_4_randsr_wupdate_df_revaluation, mb_learnt_df_revaluation, hybrid_mf_redsr_4_randsr_wupdate_df_revaluation, hybrid_mf_randsr_noupdate_df_revaluation, hybrid_mf_randsr_wupdate_df_revaluation, hybrid_mf_mb_learnt_df_revaluation)
+
+df_revaluation <- merge(df_revaluation, group_version_df, by="participant_id")
+
+df_revaluation <- df_revaluation %>%
+  mutate(Model = factor(Model, 
+                        levels = c(
+                          "Hybrid MF-MB with α(R) & α(T)",
+                          "Hybrid MF-random-policy SR (rigid M & w)",
+                          "Hybrid MF-reduced random-policy SR (4 goals)",
+                          "Hybrid MF-random-policy SR (rigid M)",
+                          "Reduced random-policy SR (4 goals)",
+                          "Reduced random-policy SR (3 goals)",
+                          "Reduced random-policy SR (2 goals)",
+                          "Random-policy SR (rigid M)",
+                          "Random-policy SR (rigid M & w)",
+                          "MB with α(R) & α(T)",
+                          "RedSR (4 goals)",
+                          "RedSR (3 goals)",
+                          "RedSR (2 goals)",
+                          "SR",
+                          "MB",
+                          "MF"
+  ))) %>%
+  mutate(version = dplyr::recode(version,
+                          "Monetary version" = "Non-alcohol context",
+                          "Alcohol version" = "Alcohol context"),
+         group = dplyr::recode(group,
+                          "Low-risk drinkers" = "Low-risk drinkers",
+                          "Harmful drinkers" = "High-risk drinkers"))
+```
+
+# Create plotting dfs
+
+```{r}
+df_learning_plotting <- df_learning %>%
+  group_by(Model, Condition) %>%
+  summarise(mean_correct = mean(correct_path, na.rm = TRUE),
+            se_correct = sd(correct_path, na.rm = TRUE)/sqrt(n()),
+            ci_l = ci(correct_path, na.rm=TRUE)[2],
+            ci_u = ci(correct_path, na.rm=TRUE)[3],
+            n = n()
+            )
+
+df_revaluation_plotting <- df_revaluation %>%
+  group_by(Model, Condition) %>%
+  summarise(mean_correct = mean(switch_path, na.rm = TRUE),
+            se_correct = sd(switch_path, na.rm = TRUE)/sqrt(n()),
+            ci_l = ci(switch_path, na.rm=TRUE)[2],
+            ci_u = ci(switch_path, na.rm=TRUE)[3],
+            n = n()
+            )
+
+df_revaluation_plotting_lowrisk_control <- df_revaluation %>%
+  filter(group == "Low-risk drinkers",
+         version == "Non-alcohol context") %>%
+  group_by(Model, Condition) %>%
+  summarise(mean_correct = mean(switch_path, na.rm = TRUE),
+            se_correct = sd(switch_path, na.rm = TRUE)/sqrt(n()),
+            ci_l = ci(switch_path, na.rm=TRUE)[2],
+            ci_u = ci(switch_path, na.rm=TRUE)[3],
+            n = n()
+            )
+
+df_learning_plotting_gc <- df_learning %>%
+  group_by(Model, Condition, group, version) %>%
+  summarise(mean_correct = mean(correct_path, na.rm = TRUE),
+            se_correct = sd(correct_path, na.rm = TRUE)/sqrt(n()),
+            ci_l = ci(correct_path, na.rm=TRUE)[2],
+            ci_u = ci(correct_path, na.rm=TRUE)[3],
+            n = n()
+            )
+
+df_revaluation_plotting_gc <- df_revaluation %>%
+  group_by(Model, Condition, group, version) %>%
+  summarise(mean_correct = mean(switch_path, na.rm = TRUE),
+            se_correct = sd(switch_path, na.rm = TRUE)/sqrt(n()),
+            ci_l = ci(switch_path, na.rm=TRUE)[2],
+            ci_u = ci(switch_path, na.rm=TRUE)[3],
+            n = n()
+            )
+```
+
+# Main: Revaluation plot selected hybrid post-hoc models, low-risk drinkers control
+
+```{r}
+supp.labs <- c("Reduced random-policy SR \n (4 goals)", 
+               "Random-policy SR \n (rigid M & w)",
+               "Random-policy SR \n (rigid M)",
+               "MB with α(R) & α(T)",
+               "Hybrid \n MF-reduced random-policy SR \n (4 goals)",
+               "Hybrid \n MF-random-policy SR \n (rigid M & w)",
+               "Hybrid \n MF-random-policy SR \n (rigid M)",
+               "Hybrid \n MF-MB α(R) & α(T)")
+
+names(supp.labs) <- c("Reduced random-policy SR (4 goals)",
+                                                               "Random-policy SR (rigid M & w)",
+                                                               "Random-policy SR (rigid M)",
+                                                               "MB with α(R) & α(T)",
+                                                               "Hybrid MF-reduced random-policy SR (4 goals)",
+                                                               "Hybrid MF-random-policy SR (rigid M & w)",
+                                                               "Hybrid MF-random-policy SR (rigid M)",
+                                                               "Hybrid MF-MB with α(R) & α(T)")
+
+main_reval_plot <- ggplot(
+  df_revaluation_plotting_lowrisk_control[df_revaluation_plotting_lowrisk_control$Model %in% c(#"Reduced random-policy SR (4 goals)",
+                                                               #"Random-policy SR (rigid M & w)",
+                                                               #"Random-policy SR (rigid M)",
+                                                               #"MB with α(R) & α(T)",
+                                                               "Hybrid MF-reduced random-policy SR (4 goals)",
+                                                               "Hybrid MF-random-policy SR (rigid M & w)",
+                                                               #"Hybrid MF-random-policy SR (rigid M)",
+                                                               "Hybrid MF-MB with α(R) & α(T)"
+                                                               ),], 
+  aes(x=Condition, y=mean_correct, fill=Condition)) +
+    geom_bar(stat="identity", aes(fill = Condition), position=position_dodge(), alpha=0.8) +
+    geom_errorbar(aes(ymin=mean_correct-se_correct, ymax=mean_correct+se_correct),
+                  width=.2,
+                  position=position_dodge(.9)) +
+    geom_point(data = test_correct_paths_condition_df, aes(x = condition, y = mean_switch), color = "red", size = 1, shape = 16, ) + 
+    geom_errorbar(data = test_correct_paths_condition_df,
+                  aes(x = condition, y = mean_switch, ymin=mean_switch-se_switch, ymax=mean_switch+se_switch),
+                  width=.2, color = "red", position=position_dodge(1)) +
+    facet_wrap(vars(Model), ncol = 3, labeller = as_labeller(supp.labs)) +
+    scale_y_continuous("Proportion of simulated test trials with \n changed path preference", limits = c(-0.05, 1.05)) +
+    theme_light(base_size = 12, base_family = "Arial") +
+    theme(legend.position = "none",
+          axis.title.x=element_blank(),
+          axis.text.x = element_text(angle = 50, vjust = 1, hjust=1, size=12),
+          strip.text.x = element_text(size = 12),
+          #axis.text.y = element_text(size=16)
+          ) +
+    scale_fill_viridis(option = "viridis", discrete = TRUE)
+main_reval_plot
+
+ggsave(filename = "main_ppc_posthocmodels.png", path = figure_path, width = 9, height = 4.5, device='png', dpi=600)
+```
+
+# Main: Revaluation plot per group and context for best post hoc model
+
+```{r}
+reval_plot_gc <- ggplot(
+  df_revaluation_plotting_gc[df_revaluation_plotting_gc$Model %in% c("Hybrid MF-reduced random-policy SR (4 goals)"),], 
+  aes(x=Condition, y=mean_correct, fill=Condition)) +
+    geom_bar(stat="identity", aes(fill = Condition), position=position_dodge(), alpha=0.8) +
+    geom_errorbar(aes(ymin=mean_correct-se_correct, ymax=mean_correct+se_correct),
+                  width=.2,
+                  position=position_dodge(.9)) +
+    geom_point(data = test_correct_paths_condition_gc_df, aes(x = condition, y = mean_switch), color = "red", size = 1, shape = 16, ) + 
+    geom_errorbar(data = test_correct_paths_condition_gc_df,
+                  aes(x = condition, y = mean_switch, ymin=mean_switch-se_switch, ymax=mean_switch+se_switch),
+                  width=.2, color = "red", position=position_dodge(1)) +
+    facet_grid(vars(group), vars(version)) +
+    scale_y_continuous("Proportion of simulated test trials with \n changed path preference", limits = c(-0.05, 1.05)) +
+    theme_light(base_size = 12, base_family = "Arial") +
+    theme(legend.position = "none",
+          axis.title.x=element_blank(),
+          axis.text.x = element_text(angle = 50, vjust = 1, hjust=1, size=12),
+          strip.text.x = element_text(size = 12),
+          axis.text.y = element_text(size=12),
+          strip.text.y = element_text(size = 12),) +
+    scale_fill_viridis(option = "viridis", discrete = TRUE)
+reval_plot_gc
+
+ggsave(filename = "ppc_simulation_revaluation_redsr_4_randsr_wupdate_gc.png", path = figure_path, width = 5.5, height = 6.5, device='png', dpi=600, bg="white")
+```
+
+
+# SI: Revaluation plot all post-hoc models, low-risk drinkers control
+
+```{r}
+supp.labs <- c("Reduced random-policy SR \n (4 goals)", 
+               "Random-policy SR \n (rigid M & w)",
+               "Random-policy SR \n (rigid M)",
+               "MB with α(R) & α(T)",
+               "Hybrid \n MF-reduced random-policy SR \n (4 goals)",
+               "Hybrid \n MF-random-policy SR \n (rigid M & w)",
+               "Hybrid \n MF-random-policy SR \n (rigid M)",
+               "Hybrid \n MF-MB with α(R) & α(T)")
+
+names(supp.labs) <- c("Reduced random-policy SR (4 goals)",
+                                                               "Random-policy SR (rigid M & w)",
+                                                               "Random-policy SR (rigid M)",
+                                                               "MB with α(R) & α(T)",
+                                                               "Hybrid MF-reduced random-policy SR (4 goals)",
+                                                               "Hybrid MF-random-policy SR (rigid M & w)",
+                                                               "Hybrid MF-random-policy SR (rigid M)",
+                                                               "Hybrid MF-MB with α(R) & α(T)")
+
+main_reval_plot <- ggplot(
+  df_revaluation_plotting_lowrisk_control[df_revaluation_plotting_lowrisk_control$Model %in% c("Reduced random-policy SR (4 goals)",
+                                                               "Random-policy SR (rigid M & w)",
+                                                               "Random-policy SR (rigid M)",
+                                                               "MB with α(R) & α(T)",
+                                                               "Hybrid MF-reduced random-policy SR (4 goals)",
+                                                               "Hybrid MF-random-policy SR (rigid M & w)",
+                                                               "Hybrid MF-random-policy SR (rigid M)",
+                                                               "Hybrid MF-MB with α(R) & α(T)"
+                                                               ),], 
+  aes(x=Condition, y=mean_correct, fill=Condition)) +
+    geom_bar(stat="identity", aes(fill = Condition), position=position_dodge(), alpha=0.8) +
+    geom_errorbar(aes(ymin=mean_correct-se_correct, ymax=mean_correct+se_correct),
+                  width=.2,
+                  position=position_dodge(.9)) +
+    geom_point(data = test_correct_paths_condition_df, aes(x = condition, y = mean_switch), color = "red", size = 1, shape = 16, ) + 
+    geom_errorbar(data = test_correct_paths_condition_df,
+                  aes(x = condition, y = mean_switch, ymin=mean_switch-se_switch, ymax=mean_switch+se_switch),
+                  width=.2, color = "red", position=position_dodge(1)) +
+    facet_wrap(vars(Model), ncol = 4, labeller = as_labeller(supp.labs)) +
+    scale_y_continuous("Proportion of simulated test trials with \n changed path preference", limits = c(-0.05, 1.05)) +
+    theme_light(base_size = 16, base_family = "Aptos") +
+    theme(legend.position = "none",
+          axis.title.x=element_blank(),
+          axis.text.x = element_text(angle = 50, vjust = 1, hjust=1, size=16),
+          strip.text.x = element_text(size = 16),
+          axis.text.y = element_text(size=16)) +
+    scale_fill_viridis(option = "viridis", discrete = TRUE)
+main_reval_plot
+
+ggsave(filename = "suppl_ppc_posthocmodels.png", path = figure_path, width = 14, height = 8, device='png', dpi=600)
+```
+
+# SI: Learning plot all models full sample
+
+```{r}
+learning_plot <- ggplot(
+  df_learning_plotting, 
+  aes(x=Condition, y=mean_correct, fill=Condition)) +
+    geom_bar(stat="identity", aes(fill = Condition), position=position_dodge(), alpha=0.8) +
+    geom_errorbar(aes(ymin=mean_correct-se_correct, ymax=mean_correct+se_correct),
+                  width=.2,
+                  position=position_dodge(.9)) +
+    facet_wrap(vars(Model), ncol = 2) +
+    scale_y_continuous("Proportion of simulated participants with \n optimal path preference", limits = c(-0.05, 1.05)) +
+    theme_light(base_size = 16, base_family = "Aptos") +
+    theme(legend.position = "none",
+          axis.title.x=element_blank(),
+          axis.text.x = element_text(angle = 50, vjust = 1, hjust=1, size=16),
+          strip.text.x = element_text(size = 16),
+          axis.text.y = element_text(size=16)) +
+    scale_fill_viridis(option = "viridis", discrete = TRUE) +
+  ggtitle("Learning performance")
+learning_plot
+```
+
+# SI: Revaluation plot all models full sample
+
+```{r}
+
+reval_plot <- ggplot(
+  df_revaluation_plotting, 
+  aes(x=Condition, y=mean_correct, fill=Condition)) +
+    geom_bar(stat="identity", aes(fill = Condition), position=position_dodge(), alpha=0.8) +
+    geom_errorbar(aes(ymin=mean_correct-se_correct, ymax=mean_correct+se_correct),
+                  width=.2,
+                  position=position_dodge(.9)) +
+    geom_point(data = test_correct_paths_condition_all_df, aes(x = condition, y = mean_switch), color = "red", size = 1, shape = 16, ) + 
+    geom_errorbar(data = test_correct_paths_condition_all_df,
+                  aes(x = condition, y = mean_switch, ymin=mean_switch-se_switch, ymax=mean_switch+se_switch),
+                  width=.2, color = "red", position=position_dodge(1)) +
+    facet_wrap(vars(Model), ncol = 2) +
+    scale_y_continuous("Proportion of simulated test trials with \n changed path preference", limits = c(-0.05, 1.05)) +
+    theme_light(base_size = 16, base_family = "Aptos") +
+    theme(legend.position = "none",
+          axis.title.x=element_blank(),
+          axis.text.x = element_text(angle = 50, vjust = 1, hjust=1, size=16),
+          strip.text.x = element_text(size = 16),
+          axis.text.y = element_text(size=16)) +
+    scale_fill_viridis(option = "viridis", discrete = TRUE) +
+  ggtitle("Revaluation performance")
+reval_plot
+
+ppc_plot <- ggarrange(learning_plot, reval_plot,
+                      common.legend = T, legend="bottom")
+
+ggsave(filename = "ppc_simulation.png", path = figure_path, width = 21, height = 23, device='png', dpi=600, bg="white")
+```
+

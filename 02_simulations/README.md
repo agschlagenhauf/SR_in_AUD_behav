@@ -1,5 +1,6 @@
 # Simulating agents' behavior in sequential decision-making task
-This code runs simulations of various RL models in the decision-making task adapted from Momennejad et al. (2017).
+
+Code in this folder simulates the behavior of the various RL models in the multi-stage decision-making task, either based on selected fixed parameter values or on individually fitted parameter values (parametric bootstrapping simulations).
 
 ## Usage
 Setup python virtualenv and install dependencies:
@@ -15,16 +16,23 @@ python main.py
 ```
 This script will run `simulate.py` for the models and conditions specified in `main.py`. Each model is saved as a separate script containing `learning` and `relearning` functions which run the respective `run_trial` function.
 
+## Agent Types
+1. **sr**: Standard successor representation
+2. **mb**: Model-based agent
+3. **mb_learnt**: Model-based agent with separate learning rates for reward and transition structure
+4. **redsr_2**: Reduced successor representation (2 goals)
+5. **redsr_3**: Reduced successor representation (3 goals)
+6. **redsr_4**: Reduced successor representation (4 goals)
+7. **randsr_noupdate**: Random-policy SR (MB learning (trials 0-4) → random-policy SR → frozen matrix, no weight updates)
+8. **randsr_wupdate**: Random-policy SR (MB learning (trials 0-4) → random-policy SR → frozen matrix, weight updates only)
+9. **redsr_2_randsr_wupdate**: Reduced random-policy (2 goals, MB → random-policy SR → RedSR_2 reduction → weight updates only)
+10. **redsr_3_randsr_wupdate**: Reduced random-policy (3 goals, MB → random-policy SR → RedSR_3 reduction → weight updates only)
+11. **redsr_4_randsr_wupdate**: Reduced random-policy (4 goals, MB → random-policy SR → RedSR_4 reduction → weight updates only)
+12. **mf**: Model-free agent
+13. **hybrid_mf_redsr_4_randsr_wupdate**: Mixture of MF and RedSR-4 random-policy SR agent
+14. **hybrid_mf_randsr_noupdate**: Mixture of MF and random-policy noupdate SR agent
+15. **hybrid_mf_randsr_wupdate**: Mixture of MF and full random-policy SR with SR weight updates during free-choice learning (no RedSR reduction; same three-parameter fit as items 13–14)
+16. **hybrid_mf_mb_learnt**: Mixture of MF and MB agent with separate learning rates for reward and transition structure
+
 ## Output
-Output is stored in the `results/` directory:
-1. `{model}.csv`: entire log of actions
-1. `success_counts.txt`: learning and relearning test results
-
-## Simulation Tuning
-- Hyperparameters (alpha, gamma, explore_chance) can be directly changed in simulate.py.
-
-- To change the number of trials for each phase, you can change the `start_states` variable in the learning and relearning functions in each model file.
-
-- Changing the task structure can be done by changing the `transitions` and `rewards` lists, which has to be done both in simulate.py and in each model's update_parameters function. 
-  - Each row in the top-level list corresponds to a state of the task, and each item in that row corresponds to a state it can transition into or the reward given for that transition, respectively. 
-  - You'll also need to change the variables `end_states`, `num_pairs` (the total number of actions), and `num_states` in simulate.py.
+Output is stored either in the `results_fixed/` directory (for simulations based on selected fixed parameter values) or in the `results_ppc/` directory (for parametric bootstrapping simulations). Output files per model contain an entire log of choices across all task phases.

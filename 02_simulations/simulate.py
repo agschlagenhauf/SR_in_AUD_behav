@@ -1,4 +1,3 @@
-#
 # simulate.py
 #
 
@@ -11,37 +10,36 @@ from utilities import *
 #
 class SimulationResult:
 
-    def __init__(self, transition_log, learning_test_result, relearning_test_result):
+    def __init__(self, transition_log):
         """
         Initializes a SimulationResult.
 
         Arguments:
-            - transition_log: str, one row entry in .csv format
-            - learning_test_result: bool, true if the test after learning phase was successful
-            - relearning_test_result: bool, true if the test after relearning phase was successful
+            - transition_log: list[str] or str, the rows for one simulation in .csv format
         """
 
         self.transition_log = transition_log
-        self.learning_test_result = learning_test_result
-        self.relearning_test_result = relearning_test_result
 
 #
 # Run Simulations
 #
-def run_simulations(model, condition, num_simulations, alpha_td, alpha_m, beta, gamma):
+def run_simulations(simulation_mode, model, condition, num_simulations, alpha_td, alpha_m, beta, gamma, mix_w=None):
     '''
     Runs a number of simulations of a given model, including the learning, relearning, and test phases.
 
     Arguments:
-        - model: str, e.g. "model_free", "full_sr", "reduced_sr"
+        - model: str, e.g. "mf", "sr", "redsr_2"
         - condition: str, e.g. "control", "reward", "transition", "policy", "goal"
         - num_simulations: int, number of simulations to run
+        - mix_w: optional; mixture weight on non-MF policy for hybrid models (defaults to 0.5 if None)
 
     Returns:
         - [SimulationResult]: list of simulation results for a (model, condition) pair
     '''
 
-    # import model.py as module (has 4 available functions, learning(), update_parameters(), relearning(), test())
+    # Import model module. Models expose:
+    # - learning(), update_parameters(), relearning()
+    # - test_deterministic() and test_probabilistic() (test-phase logging only)
     model_package = importlib.import_module(model)
 
     #
@@ -87,7 +85,7 @@ def run_simulations(model, condition, num_simulations, alpha_td, alpha_m, beta, 
         #
 
         ###### model-free ######
-        if model == "model_free":
+        if model == "mf":
 
             v_state = []
 
@@ -100,7 +98,7 @@ def run_simulations(model, condition, num_simulations, alpha_td, alpha_m, beta, 
             model_parameters = [v_state]
 
         ###### model-based ######
-        elif model in ["model_based"]:
+        elif model in ["mb"]:
             v_state = []
             init_weight = []
 
@@ -115,7 +113,7 @@ def run_simulations(model, condition, num_simulations, alpha_td, alpha_m, beta, 
             init_t_matrix = init_t_counts # normalized transition matrix
             model_parameters = [v_state, init_t_counts, init_t_matrix, init_weight]
             
-        elif model == "model_based_learnt":
+        elif model == "mb_learnt":
             v_state = []
             init_weight = []
 
@@ -127,30 +125,22 @@ def run_simulations(model, condition, num_simulations, alpha_td, alpha_m, beta, 
                 init_weight.append(row.copy())
 
             init_t_matrix = np.ones((num_pairs, num_states))*(1/num_states) # normalized transition matrix with small non-zero prior
+            init_t_matrix[num_states-1, :] = 0 
             model_parameters = [num_states, v_state, init_t_matrix, init_weight]
 
-
         ###### full & reduced SR ######
-        elif model in ["full_sr", "full_sr_forcedonly"]:
+        elif model in ["sr"]:
             v_state = np.zeros(num_pairs)
             init_weight = np.zeros(num_pairs)
             init_sr = np.identity(num_pairs)  # init M with ‚identity matrix as in Russek et al. 2017
 
             model_parameters = [num_pairs, v_state, init_sr, init_weight]
 
-        elif model in ["random_sr_from_mb_wTD_wnoupdate", 
-                       "random_sr_from_mb_wTD_wnoupdate_late", 
-                       "random_sr_from_mb_wTD_wfeat", 
-                       "random_sr_from_mb_wTD_wfeat_late", 
-                       "random_sr_from_mb_wTD_wfeatMfeat",
-                       "random_sr_from_mb_wTD_wfeatMfeat_late",
-                       
-                       "random_reduced_sr_1goalstate_from_mb_wTD_wfeat",
-                       "random_reduced_sr_1goalstate_from_mb_wTD_wfeat_late",
-                       "random_reduced_sr_2goalstates_from_mb_wTD_wfeat",
-                       "random_reduced_sr_2goalstates_from_mb_wTD_wfeat_late",
-                       "random_reduced_sr_4goalstates_from_mb_wTD_wfeat", 
-                       "random_reduced_sr_4goalstates_from_mb_wTD_wfeat_late"]:
+        elif model in ["randsr_noupdate", 
+                       "randsr_wupdate",
+                       "redsr_2_randsr_wupdate",
+                       "redsr_3_randsr_wupdate",
+                       "redsr_4_randsr_wupdate"]:
             v_state = []
             init_weight = []
         
@@ -166,7 +156,7 @@ def run_simulations(model, condition, num_simulations, alpha_td, alpha_m, beta, 
             
             model_parameters = [num_pairs, v_state, init_t_counts, init_t_matrix, init_weight]  
 
-        elif model in ["reduced_sr", "reduced_sr_2goalstates", "reduced_sr_4goalstates"]:
+        elif model in ["redsr_2", "redsr_3", "redsr_4"]:
             v_state = np.zeros(num_pairs)
             init_weight = np.zeros(num_pairs)
             init_reduced_weight = np.zeros((num_pairs, 2)) # hard-coded number of columns - adapt!
@@ -175,45 +165,152 @@ def run_simulations(model, condition, num_simulations, alpha_td, alpha_m, beta, 
 
             model_parameters = [num_pairs, v_state, init_sr, init_reduced_sr, init_weight, init_reduced_weight]
 
+        ###### Hybrid MF models ######
+        elif model in ["hybrid_mf_redsr_4_randsr_wupdate", 
+                       "hybrid_mf_randsr_noupdate",
+                       "hybrid_mf_randsr_wupdate"]:
+            v_state_non_mf = []
+            v_state_mf = []
+            init_weight = []
+
+            for j in range(len(rewards)):
+                row = []
+                for k in range(len(rewards[j])):
+                    row.append(0)
+                v_state_non_mf.append(row)
+                v_state_mf.append(row.copy())
+                init_weight.append(row.copy())
+
+            init_t_counts = np.zeros((num_pairs, num_states))
+            init_t_matrix = init_t_counts
+            model_parameters = [num_pairs, v_state_non_mf, init_t_counts, init_t_matrix, init_weight, v_state_mf]
+
+        elif model == "hybrid_mf_mb_learnt":
+            v_state_non_mf = []
+            v_state_mf = []
+            init_weight = []
+
+            for j in range(len(rewards)):
+                row = []
+                for k in range(len(rewards[j])):
+                    row.append(0)
+                v_state_non_mf.append(row)
+                v_state_mf.append(row.copy())
+                init_weight.append(row.copy())
+
+            init_t_matrix = np.ones((num_pairs, num_states)) * (1 / num_states)
+            init_t_matrix[num_states - 1, :] = 0
+            model_parameters = [num_states, v_state_non_mf, init_t_matrix, init_weight, v_state_mf]
+
+
+
         #
         # Learning Phase
         #
-        learned_parameters, learning_transition_log = model_package.learning(
-            gamma,
-            alpha_td,
-            alpha_m,
-            beta,
-            end_state,
-            rewards,
-            transitions,
-            model_parameters,
-            forced_choice_switch
-        )
+        
+        if model in (
+            "hybrid_mf_redsr_4_randsr_wupdate",
+            "hybrid_mf_randsr_noupdate",
+            "hybrid_mf_randsr_wupdate",
+            "hybrid_mf_mb_learnt",
+        ):
 
-        learning_test_state1_action, learning_test_state2_action, learning_test_state3_action, learning_test_transition_log = model_package.test(learned_parameters)
+            learned_parameters, learning_transition_log = model_package.learning(
+                gamma,
+                alpha_td,
+                alpha_m,
+                beta,
+                mix_w,
+                end_state,
+                rewards,
+                transitions,
+                model_parameters,
+                forced_choice_switch,
+            )
+
+            learning_test_transition_log = model_package.test_deterministic(learned_parameters, mix_w)
+
+        else:
+            learned_parameters, learning_transition_log = model_package.learning(
+                gamma,
+                alpha_td,
+                alpha_m,
+                beta,
+                end_state,
+                rewards,
+                transitions,
+                model_parameters,
+                forced_choice_switch
+            )
+
+            learning_test_transition_log = model_package.test_deterministic(learned_parameters)
         
         #
         # Relearning Phase
         #
         new_rewards, new_transitions = model_package.update_parameters(condition, rewards, transitions)
 
-        relearned_parameters, relearning_transition_log = model_package.relearning(
-            condition,
-            gamma,
-            alpha_td,
-            alpha_m,
-            beta,
-            end_state,
-            new_rewards,
-            new_transitions,
-            learned_parameters
-        )
+        if model in (
+            "hybrid_mf_redsr_4_randsr_wupdate",
+            "hybrid_mf_randsr_noupdate",
+            "hybrid_mf_randsr_wupdate",
+            "hybrid_mf_mb_learnt",
+        ):
 
-        relearning_test_state1_action, relearning_test_state2_action, relearning_test_state3_action, relearning_test_transition_log = model_package.test(relearned_parameters)
+            relearned_parameters, relearning_transition_log = model_package.relearning(
+                condition,
+                gamma,
+                alpha_td,
+                alpha_m,
+                beta,
+                mix_w,
+                end_state,
+                new_rewards,
+                new_transitions,
+                learned_parameters,
+            )
+
+        else:
+
+            relearned_parameters, relearning_transition_log = model_package.relearning(
+                condition,
+                gamma,
+                alpha_td,
+                alpha_m,
+                beta,
+                end_state,
+                new_rewards,
+                new_transitions,
+                learned_parameters
+            )
+
+        # When simulating from fixed parameters, we simulate deterministic model performance (always choosing the higher-valued option in test trials)
+        if simulation_mode == "fixed":
+            if model in (
+                "hybrid_mf_redsr_4_randsr_wupdate",
+                "hybrid_mf_randsr_noupdate",
+                "hybrid_mf_randsr_wupdate",
+                "hybrid_mf_mb_learnt",
+            ):
+                relearning_test_transition_log = model_package.test_deterministic(relearned_parameters, mix_w)
+            else:
+                relearning_test_transition_log = model_package.test_deterministic(relearned_parameters)
+        # When simulating from individually fitted parameters, we simulate real-person like behavior that we can later use for parameter recovery
+        elif simulation_mode == "ppc":
+            if model in (
+                "hybrid_mf_redsr_4_randsr_wupdate",
+                "hybrid_mf_randsr_noupdate",
+                "hybrid_mf_randsr_wupdate",
+                "hybrid_mf_mb_learnt",
+            ):
+                relearning_test_transition_log = model_package.test_probabilistic(relearned_parameters, beta, mix_w)
+            else:
+                relearning_test_transition_log = model_package.test_probabilistic(relearned_parameters, beta)
        
         #
         # Results
         #
+        
         learning_transition_log = prefix_all("learning,", learning_transition_log);
         learning_test_transition_log = prefix_all("learning_test,", learning_test_transition_log);
 
@@ -229,25 +326,15 @@ def run_simulations(model, condition, num_simulations, alpha_td, alpha_m, beta, 
 
         transition_log = prefix_all(f"{simulation_number},{model},{condition},", transition_log)
 
-        # ecode correctness of test (TRUE = correct)
-        learning_test_result = (learning_test_state1_action == ACTION_RIGHT and learning_test_state3_action == ACTION_RIGHT)
-        
-        if condition == "control":
-            relearning_test_result = (relearning_test_state1_action == ACTION_RIGHT and relearning_test_state3_action == ACTION_RIGHT)
-        else:
-            relearning_test_result = (relearning_test_state1_action == ACTION_LEFT and relearning_test_state2_action == ACTION_LEFT)
-
         simulation_results.append(
             SimulationResult(
                 transition_log=transition_log,
-                learning_test_result=learning_test_result,
-                relearning_test_result=relearning_test_result
             )
         )
 
     print(f"  > Done\n")
 
     # return results for one model, one condition with all phases, all simulations
-    return simulation_results, alpha_td, alpha_m, beta, gamma
+    return simulation_results
 
 

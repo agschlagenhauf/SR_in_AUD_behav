@@ -261,8 +261,21 @@ demo_psych <- demo_psych %>%
   filter(! prolific_ID %in% excluded_IDs,
          preserve = TRUE)
 
+```
+
+```{r}
+# Save dfs
 save(demo_psych, file = file.path(data_path, "demo_psych_data_included.RData"))
 save(trial_df, component_df, rating_df, file = file.path(data_path, "final_data_included.RData"))
+
+modeling_df <- trial_df %>%
+  select(ID, group, version, component, correct_first_state_action, trial, state, choice, reward)
+
+
+write.csv(modeling_df, file = file.path(data_path, "modeling_data.csv"), 
+          quote=FALSE,
+          row.names = FALSE
+          )
 ```
 
 ### Further analyses based on

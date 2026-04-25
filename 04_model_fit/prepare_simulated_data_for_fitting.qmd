@@ -1,0 +1,39 @@
+---
+title: "Prepare simulated data for fitting"
+author: "Milena Musial"
+format: html
+editor: visual
+jupyter: python3
+---
+
+# Preps
+
+```{r}
+# Load packages
+packages <- c("ggplot2", "dplyr", "tidyr", "kableExtra", "gmodels", "lme4", "sjPlot", "viridis", "forcats", "lmerTest", "car", "ggpubr", "ggpattern")
+#install.packages(packages)
+sapply(packages, require, character.only = TRUE)
+
+data_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/SR_in_AUD_behav/02_simulations/results_ppc"
+
+sim_data <- read.csv(file.path(data_path, "redsr_2_randsr_wupdate_ppc_allparticipants.csv"))
+
+sim_data <- sim_data %>%
+  select(participant_id, condition, phase, trial, state, action, reward) %>%
+  mutate(
+    phase = dplyr::recode(phase, relearning_test = "test"),
+    action = ifelse(action == 2, "right",
+                    ifelse(action == 1 & state %in% c(1, 2, 3), "left", NA)),
+    condition = dplyr::recode(condition, goal = "goal-state")) %>%
+  rename("ID" = "participant_id",
+         "choice" = "action") %>%
+  mutate(component = paste(condition, "-", phase, sep=""),
+         correct_first_state_action = "right") %>%
+    filter(! phase == "learning_test") %>%
+  select(ID, component, correct_first_state_action, trial, state, choice, reward)
+
+```
+
+```{r}
+write.csv(sim_data, file.path(data_path, "model_fitting_data_redsr_2_randsr_wupdate.csv"))
+```

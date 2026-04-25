@@ -1,0 +1,260 @@
+---
+title: "Comparing model fit and parameter estimates"
+format: html
+editor: visual
+toc: TRUE
+code-fold: TRUE
+warning: FALSE
+number-sections: TRUE
+embed-resources: true
+execute: 
+  warning: FALSE
+editor_options: 
+  chunk_output_type: console
+---
+
+# Preps
+
+```{r}
+rm(list = ls(all = TRUE))
+
+# Load packages
+packages <- c("ggplot2", "dplyr", "ggpubr", "viridis", "performance", "sjPlot", "kableExtra")
+#install.packages(packages)
+sapply(packages, require, character.only = TRUE)
+
+# Set paths
+real_params_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/SR_in_AUD_behav/04_model_fit/results_real_data"
+real_data_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/WP3_DATA/FINAL_STUDY/RDFs"
+figure_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/Project_Docs/Figures/behavioral"
+
+# Load dfs
+model_fit_df <- read.csv(file.path(real_params_path, "model_fit_per_participant_lbfgsb.csv"))
+load(file.path(real_data_path, "final_data_included.RData"))
+
+group_version_df <- trial_df %>%
+  dplyr::select(ID, group, version) %>%
+  unique() %>%
+  rename("subject" = "ID")
+
+model_fit_df <- merge(model_fit_df, group_version_df, by = "subject")
+
+model_fit_df <- model_fit_df %>%
+  mutate(version = dplyr::recode(version,
+                          "Monetary version" = "Non-alcohol context",
+                          "Alcohol version" = "Alcohol context"))
+
+contrasts(model_fit_df$group) <- contr.sum(2)*-0.5
+contrasts(model_fit_df$version) <- contr.sum(2)*-0.5
+```
+
+# Model fit
+
+```{r}
+fit_summary <- model_fit_df %>%
+  group_by(group, version, agent_type) %>%
+  summarise(mean = mean(AIC, na.rm = TRUE),
+            se = sd(AIC, na.rm = TRUE)/sqrt(n()),
+            n = n()
+            ) %>%
+  arrange(group, version, mean)
+fit_summary
+```
+
+```{r}
+supp.labs <- c("Hybrid MF-reduced random-policy SR (4 goals)", 
+               "Hbrid MF-MB α(R) > α(T)", 
+               "Hybrid MF-random-policy SR (rigid M)",
+               "Hybrid MF-random-policy SR (rigid M & w)",
+               "Reduced random-policy SR (4 goals)",
+               "MB α(R) > α(T)",
+               "Random-policy SR (rigid M)",
+               "Reduced random-policy SR (2 goals)",
+               "MB",
+               "Reduced random-policy SR (3 goals)",
+               "RedSR (4 goals)",
+               "RedSR (2 goals)",
+               "RedSR (3 goals)",
+               "SR",
+               "MF",
+               "Random-policy SR (rigid M & w)")
+names(supp.labs) <- c("hybrid_mf_redsr_4_randsr_wupdate", 
+               "hybrid_mf_mb_learnt", 
+               "hybrid_mf_randsr_wupdate",
+               "hybrid_mf_randsr_noupdate",
+               "redsr_4_randsr_wupdate",
+               "mb_learnt",
+               "randsr_wupdate",
+               "redsr_2_randsr_wupdate",
+               "mb",
+               "redsr_3_randsr_wupdate",
+               "redsr_4",
+               "redsr_2",
+               "redsr_3",
+               "sr",
+               "mf",
+               "randsr_noupdate")
+
+fit_plot <- ggplot(
+  fit_summary, 
+  aes(x=reorder(agent_type, mean), y=mean, fill=agent_type)) +
+    geom_bar(stat="identity", aes(fill = agent_type), position=position_dodge(), alpha=0.8) +
+    geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                  width=.2,
+                  position=position_dodge(.9)) +
+    facet_grid(vars(group), vars(version)) +
+    scale_x_discrete(labels = supp.labs) +
+    scale_y_continuous("Average AIC") +
+    theme_light(base_size = 20, base_family = "Aptos") +
+    theme(legend.position = "none",
+          axis.title.x=element_blank(),
+          axis.text.x = element_text(angle = 75, vjust = 1, hjust=1, size=20),
+          strip.text.x = element_text(size = 20),
+          strip.text.y = element_text(size = 20),
+          axis.text.y = element_text(size=20)) +
+    scale_fill_viridis(option = "magma", discrete = TRUE)
+fit_plot
+
+ggsave(filename = "model_comparison_AIC.png", path = figure_path, width = 24, height = 15, device='png', dpi=600, bg="white")
+```
+
+# Parameters
+
+```{r}
+parameter_summary <- model_fit_df %>%
+  group_by(group, version, agent_type) %>%
+  summarise(mean_alpha_rwq = mean(alpha_rwq, na.rm = TRUE),
+            se_alpha_rwq = sd(alpha_rwq, na.rm = TRUE)/sqrt(n()),
+            mean_alpha_mt = mean(alpha_mt, na.rm = TRUE),
+            se_alpha_mt = sd(alpha_mt, na.rm = TRUE)/sqrt(n()),
+            mean_gamma = mean(gamma, na.rm = TRUE),
+            se_gamma = sd(gamma, na.rm = TRUE)/sqrt(n()),
+            mean_w = mean(w, na.rm = TRUE),
+            se_w = sd(w, na.rm = TRUE)/sqrt(n()),
+            n = n()
+            ) %>%
+  arrange(agent_type)
+parameter_summary %>%
+  kable("html") %>%
+  kable_styling(font_size = 18,
+                latex_options = "scale_down")
+
+parameter_summary_per_context <- model_fit_df %>%
+  group_by(version, agent_type) %>%
+  summarise(mean_alpha_rwq = mean(alpha_rwq, na.rm = TRUE),
+            se_alpha_rwq = sd(alpha_rwq, na.rm = TRUE)/sqrt(n()),
+            mean_alpha_mt = mean(alpha_mt, na.rm = TRUE),
+            se_alpha_mt = sd(alpha_mt, na.rm = TRUE)/sqrt(n()),
+            mean_gamma = mean(gamma, na.rm = TRUE),
+            se_gamma = sd(gamma, na.rm = TRUE)/sqrt(n()),
+            mean_w = mean(w, na.rm = TRUE),
+            se_w = sd(w, na.rm = TRUE)/sqrt(n()),
+            n = n()
+            ) %>%
+  arrange(agent_type)
+parameter_summary_per_context %>%
+  kable("html") %>%
+  kable_styling(font_size = 18,
+                latex_options = "scale_down")
+
+parameter_summary_per_group <- model_fit_df %>%
+  group_by(group, agent_type) %>%
+  summarise(mean_alpha_rwq = mean(alpha_rwq, na.rm = TRUE),
+            se_alpha_rwq = sd(alpha_rwq, na.rm = TRUE)/sqrt(n()),
+            mean_alpha_mt = mean(alpha_mt, na.rm = TRUE),
+            se_alpha_mt = sd(alpha_mt, na.rm = TRUE)/sqrt(n()),
+            mean_gamma = mean(gamma, na.rm = TRUE),
+            se_gamma = sd(gamma, na.rm = TRUE)/sqrt(n()),
+            mean_w = mean(w, na.rm = TRUE),
+            se_w = sd(w, na.rm = TRUE)/sqrt(n()),
+            n = n()
+            ) %>%
+  arrange(agent_type)
+parameter_summary_per_group %>%
+  kable("html") %>%
+  kable_styling(font_size = 18,
+                latex_options = "scale_down")
+```
+
+## Linear regression
+
+### Omega
+
+```{r}
+
+model_omega <- lm(w ~ group*version,
+                data = model_fit_df[model_fit_df$agent_type=="hybrid_mf_redsr_4_randsr_wupdate",])
+tab_model(model_omega, show.est = T, show.df = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+summary <- summary(model_omega)
+round(summary$coefficients[, 4]*3, 3)
+check_model(model_omega)
+
+
+
+model_omega <- lm(w ~ group*version,
+                data = model_fit_df[model_fit_df$agent_type=="hybrid_mf_randsr_wupdate",])
+tab_model(model_omega, show.est = T, show.df = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+summary <- summary(model_omega)
+round(summary$coefficients[, 4]*3, 3)
+check_model(model_omega)
+
+
+
+model_omega <- lm(w ~ group*version,
+                data = model_fit_df[model_fit_df$agent_type=="hybrid_mf_randsr_noupdate",])
+tab_model(model_omega, show.est = T, show.df = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+summary <- summary(model_omega)
+round(summary$coefficients[, 4]*3, 3)
+check_model(model_omega)
+```
+
+### Alpha
+
+```{r}
+
+model_alpha_rwq <- lm(alpha_rwq ~ group*version,
+                data = model_fit_df[model_fit_df$agent_type=="redsr_4_randsr_wupdate",])
+tab_model(model_alpha_rwq, show.est = T, show.df = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+check_model(model_alpha_rwq)
+
+
+
+model_alpha_rwq <- lm(alpha_rwq ~ group*version,
+                data = model_fit_df[model_fit_df$agent_type=="randsr_wupdate",])
+tab_model(model_alpha_rwq, show.est = T, show.df = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+check_model(model_alpha_rwq)
+
+
+
+model_alpha_rwq <- lm(alpha_rwq ~ group*version,
+                data = model_fit_df[model_fit_df$agent_type=="randsr_noupdate",])
+tab_model(model_alpha_rwq, show.est = T, show.df = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+check_model(model_omega)
+
+
+
+model_alpha_rwq <- lm(alpha_rwq ~ group*version,
+                data = model_fit_df[model_fit_df$agent_type=="hybrid_mf_redsr_4_randsr_wupdate",])
+tab_model(model_alpha_rwq, show.est = T, show.df = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+summary <- summary(model_alpha_rwq)
+round(summary$coefficients[, 4]*3, 3)
+check_model(model_alpha_rwq)
+
+
+
+model_alpha_rwq <- lm(alpha_rwq ~ group*version,
+                data = model_fit_df[model_fit_df$agent_type=="hybrid_mf_randsr_wupdate",])
+tab_model(model_alpha_rwq, show.est = T, show.df = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+summary <- summary(model_alpha_rwq)
+round(summary$coefficients[, 4]*3, 3)
+check_model(model_alpha_rwq)
+
+
+
+model_alpha_rwq <- lm(alpha_rwq ~ group*version,
+                data = model_fit_df[model_fit_df$agent_type=="hybrid_mf_randsr_noupdate",])
+tab_model(model_alpha_rwq, show.est = T, show.df = T, show.stat = T, auto.label = FALSE, CSS = list(css.table = '+font-size: 14;'))
+summary <- summary(model_alpha_rwq)
+round(summary$coefficients[, 4]*3, 3)
+check_model(model_omega)
+```

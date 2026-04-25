@@ -1,10 +1,10 @@
-## Task code
+# Multi-stage decision-making task
 
-This folder contains JavaScript/HTML/CSS code for the multi-stage decision-making task used for pilots and main study.
+This folder contains JavaScript/HTML/CSS code for the multi-stage decision-making task.
 
-### How to use
+## How to use
 All code is written for JATOS (https://www.jatos.org/). You can test the code in a local JATOS installation. To do so, 
-- save the respective folder (e.g. `pilot_1`) in the study_assets_root directory of your local JATOS installation
+- save the respective folder in the study_assets_root directory of your local JATOS installation
 - open the loader.bat script
 - open local JATOS in a browser
 - click study links and create a link

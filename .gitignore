@@ -9,5 +9,9 @@ venv
 *.rmarkdown
 *_files
 results
+results_fixed
+results_ppc
+results_param_recovery
+results_real_data
 html
 .spyproject

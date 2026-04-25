@@ -671,10 +671,65 @@ trial_df <- trial_df %>%
                                   (state == 1 & correct == 0) ~ 0, # incorrect state 1 choice
                                   (state == 1 & lead(correct) == 0) ~ 0)) # incorrect second stage choice
 
-# calculate if change in path preference occured (for reward, goal-state, transition, policy == correct path; for control != correct path)
+# calculate if change in path preference occurred (for reward, goal-state, transition, policy == correct path; for control != correct path)
 trial_df <- trial_df %>%
   mutate(switch_path = if_else((state == 1 & component %in% c("control-test")), abs(correct_path-1), # in control condition, it is correct to not switch, so all incorrect trials are switch trials
                         if_else((state == 1 & phase %in% c("test")), correct_path, NA))) # in all other conditions, it is correct to switch, so all correct trials are switch trials
+
+
+# calculate reward received (we pretend reward is always monetary for both versions, as we assume that value of 1 glass == 15 euros etc.)
+trial_df <- trial_df %>%
+  mutate(
+    reward = case_when(
+      
+      # learning reward condition
+      condition %in% c("Reward revaluation", "Goal-state revaluation", "Control") & phase == "learning" & correct_first_state_action == "right" & state == "7" ~ 15,
+      condition %in% c("Reward revaluation", "Goal-state revaluation", "Control") & phase == "learning" & correct_first_state_action == "right" & state == "9" ~ 30,
+      condition %in% c("Reward revaluation", "Goal-state revaluation", "Control") & phase == "learning" & correct_first_state_action == "left"  & state == "7" ~ 30,
+      condition %in% c("Reward revaluation", "Goal-state revaluation", "Control") & phase == "learning" & correct_first_state_action == "left"  & state == "9" ~ 15,
+      
+      condition %in% c("Transition revaluation", "Policy revaluation") & phase == "learning" & correct_first_state_action == "right" & state == "8" ~ 15,
+      condition %in% c("Transition revaluation", "Policy revaluation") & phase == "learning" & correct_first_state_action == "right" & state == "9" ~ 30,
+      condition %in% c("Transition revaluation", "Policy revaluation") & phase == "learning" & correct_first_state_action == "left"  & state == "7" ~ 30,
+      condition %in% c("Transition revaluation", "Policy revaluation") & phase == "learning" & correct_first_state_action == "left"  & state == "8" ~ 15,
+      
+      # relearning reward
+      condition == "Reward revaluation" & phase == "relearning" & correct_first_state_action == "left"  & state == "7" ~ 45,
+      condition == "Reward revaluation" & phase == "relearning" & correct_first_state_action == "left"  & state == "9" ~ 30,
+      condition == "Reward revaluation" & phase == "relearning" & correct_first_state_action == "right" & state == "7" ~ 30,
+      condition == "Reward revaluation" & phase == "relearning" & correct_first_state_action == "right" & state == "9" ~ 45,
+      
+      # relearning goal-state
+      condition == "Goal-state revaluation" & phase == "relearning" & correct_first_state_action == "left"  & state == "4" ~ 45,
+      condition == "Goal-state revaluation" & phase == "relearning" & correct_first_state_action == "left"  & state == "7" ~ 15,
+      condition == "Goal-state revaluation" & phase == "relearning" & correct_first_state_action == "left"  & state == "9" ~ 30,
+      condition == "Goal-state revaluation" & phase == "relearning" & correct_first_state_action == "right" & state == "6" ~ 45,
+      condition == "Goal-state revaluation" & phase == "relearning" & correct_first_state_action == "right" & state == "7" ~ 30,
+      condition == "Goal-state revaluation" & phase == "relearning" & correct_first_state_action == "right" & state == "9" ~ 15,
+      
+      # relearning transition
+      condition == "Transition revaluation" & phase == "relearning" & correct_first_state_action == "left"  & state == "8" ~ 15,
+      condition == "Transition revaluation" & phase == "relearning" & correct_first_state_action == "left"  & state == "9" ~ 30,
+      condition == "Transition revaluation" & phase == "relearning" & correct_first_state_action == "right" & state == "7" ~ 30,
+      condition == "Transition revaluation" & phase == "relearning" & correct_first_state_action == "right" & state == "8" ~ 15,
+      
+      # relearning policy
+      condition == "Policy revaluation" & phase == "relearning" & correct_first_state_action == "left"  & state == "7" ~ 45,
+      condition == "Policy revaluation" & phase == "relearning" & correct_first_state_action == "left"  & state == "8" ~ 15,
+      condition == "Policy revaluation" & phase == "relearning" & correct_first_state_action == "left"  & state == "9" ~ 30,
+      condition == "Policy revaluation" & phase == "relearning" & correct_first_state_action == "right" & state == "7" ~ 30,
+      condition == "Policy revaluation" & phase == "relearning" & correct_first_state_action == "right" & state == "8" ~ 15,
+      condition == "Policy revaluation" & phase == "relearning" & correct_first_state_action == "right" & state == "9" ~ 45,
+      
+      # relearning control
+      condition == "Control" & phase == "relearning" & correct_first_state_action == "right" & state == "7" ~ 15,
+      condition == "Control" & phase == "relearning" & correct_first_state_action == "right" & state == "9" ~ 45,
+      condition == "Control" & phase == "relearning" & correct_first_state_action == "left"  & state == "7" ~ 45,
+      condition == "Control" & phase == "relearning" & correct_first_state_action == "left"  & state == "9" ~ 15,
+      
+      TRUE ~ 0
+    )
+  )
 
 
 
@@ -699,7 +754,7 @@ trial_df <- trial_df %>%
           variation, drink, component, phase, condition, condition_index, environment,
           correct_first_state_action, correct_second_state_action, correct_third_state_action,
           trial, state, state_index, choice, valid_choice, RT, correct_state_1, correct_state_2, correct_state_3, 
-          correct, correct_path, switch, switch_path) %>%
+          correct, reward, correct_path, switch, switch_path) %>%
     arrange(ID, 
           condition_index,
           phase,
@@ -1060,3 +1115,4 @@ demo_psych <- demo_psych %>%
 save(trial_df, rating_df, component_df, file = file.path(data_path, "RDFs/final_data_complete.RData"))
 save(trial_df_w_oldrating, rating_df_w_oldrating, component_df_w_oldrating, file = file.path(data_path, "RDFs/final_data_complete_w_oldrating.RData"))
 save(demo_psych, file = file.path(data_path, "RDFs/demo_psych_data.RData"))
+

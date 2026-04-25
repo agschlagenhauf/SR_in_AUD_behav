@@ -1,0 +1,146 @@
+---
+title: "Parameter recovery"
+author: "Milena Musial"
+format: html
+editor: visual
+toc: TRUE
+code-fold: TRUE
+warning: FALSE
+number-sections: TRUE
+embed-resources: true
+execute: 
+  warning: FALSE
+editor_options: 
+  chunk_output_type: console
+---
+
+# Preps
+
+```{r}
+rm(list = ls(all = TRUE))
+
+# Load packages
+packages <- c("ggplot2", "dplyr", "ggpubr", "viridis")
+#install.packages(packages)
+sapply(packages, require, character.only = TRUE)
+
+# Set paths
+real_params_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/SR_in_AUD_behav/04_model_fit/results_real_data"
+recovered_params_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/SR_in_AUD_behav/04_model_fit/results_param_recovery"
+real_data_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/WP3_DATA/FINAL_STUDY/RDFs"
+figure_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/Project_Docs/Figures/behavioral"
+
+lowrisk_control = FALSE # set to FALSE if full sample should be considered
+
+models <- c("redsr_4_randsr_wupdate", 
+            "randsr_wupdate", 
+            "randsr_noupdate", 
+            "mb_learnt",
+            "hybrid_mf_redsr_4_randsr_wupdate", 
+            "hybrid_mf_randsr_wupdate", 
+            "hybrid_mf_randsr_noupdate", 
+            "hybrid_mf_mb_learnt",
+            "redsr_3_randsr_wupdate", 
+            "redsr_2_randsr_wupdate",
+            "redsr_4",
+            "redsr_3",
+            "redsr_2",
+            "sr",
+            "mb",
+            "mf")
+```
+
+# Correlation
+
+```{r}
+
+for (model in models) {
+  
+  # Load dfs
+  real_params <- read.csv(file.path(real_params_path, paste("best_parameters_lbfgsb_", model, ".csv", sep="")))
+  recovered_params <- read.csv(file.path(recovered_params_path, paste("best_parameters_lbfgsb_", model, ".csv", sep="")))
+  
+  # Merge dfs
+  params <- merge(real_params, recovered_params, by="subject")
+  
+  # Load real data
+  load(file.path(real_data_path, "final_data_included.RData"))
+  
+  group_version_df <- trial_df %>%
+    dplyr::select(ID, group, version) %>%
+    unique() %>%
+    rename("subject" = "ID")
+  
+  params <- merge(params, group_version_df, by = "subject")
+  
+  if (lowrisk_control == TRUE) {
+    params <- params %>%
+      filter(group == "Low-risk drinkers",
+             version == "Monetary version")
+  }
+  
+  # alpha rwq
+  corr_plot_alpha_rwq <- ggplot(params,
+                    aes(x = alpha_rwq.x, y = alpha_rwq.y)) +
+    geom_point() +
+    stat_cor(method = "spearman") +
+    labs(x = "α(R) (original)",
+         y = "α(R) (recovered)") +
+    theme_light(base_size = 16, base_family = "Aptos")
+  
+
+  # alpha mt
+  if (model %in% c("mb_learnt", "hybrid_mf_mb_learnt")) {
+    corr_plot_alpha_mt <- ggplot(params,
+                        aes(x = alpha_mt.x, y = alpha_mt.y)) +
+      geom_point() +
+      stat_cor(method = "spearman") +
+      labs(x = "α(T) (original)",
+           y = "α(T) (recovered)") +
+      theme_light(base_size = 16, base_family = "Aptos")
+  }
+  
+  # gamma
+  corr_plot_gamma <- ggplot(params,
+                      aes(x=gamma.x, y=gamma.y)) +
+    geom_point() +
+    stat_cor(method = "spearman") +
+    labs(x = "γ (original)",
+         y = "γ (recovered)") +
+    theme_light(base_size = 16, base_family = "Aptos")
+  
+  # w
+  if (model %in% c("hybrid_mf_redsr_4_randsr_wupdate", "hybrid_mf_randsr_wupdate", "hybrid_mf_randsr_noupdate", "hybrid_mf_mb_learnt")) {
+    
+    corr_plot_w <- ggplot(params,
+                        aes(x = w.x, y = w.y)) +
+      geom_point() +
+      stat_cor(method = "spearman") +
+      labs(x = "w (original)",
+           y = "w (recovered)") +
+      theme_light(base_size = 16, base_family = "Aptos")
+  }
+  
+  if (model %in% c("mb_learnt")) {
+    recovery_plot <- ggarrange(corr_plot_alpha_rwq, corr_plot_alpha_mt, corr_plot_gamma, nrow=1)
+    recovery_plot
+  } else if (model %in% c("hybrid_mf_redsr_4_randsr_wupdate", "hybrid_mf_randsr_wupdate", "hybrid_mf_randsr_noupdate")) {
+    recovery_plot <- ggarrange(corr_plot_alpha_rwq, corr_plot_gamma, corr_plot_w, nrow=1)
+    recovery_plot
+  } else if (model %in% c("hybrid_mf_mb_learnt")) {
+    recovery_plot <- ggarrange(corr_plot_alpha_rwq, corr_plot_alpha_mt, corr_plot_gamma, corr_plot_w, nrow=1)
+    recovery_plot
+  }
+  else {
+    recovery_plot <- ggarrange(corr_plot_alpha_rwq, corr_plot_gamma, nrow=1)
+    recovery_plot
+  }
+  
+  recovery_plot
+
+  ggsave(filename = paste("parameter_recovery_", model, ".png", sep=""), path = figure_path, width = 15, height = 5, device='png', dpi=600, bg="white")
+    
+}
+
+
+```
