@@ -1,6 +1,6 @@
 # Reduced SR in AUD
 
-Code related to the manuscript 'The successor representation in high-risk drinking and alcohol-related contexts' (Musial et al., 2026, PsyArXiv, https://doi.org/10.31234/osf.io/rmdqk_v3).
+Code related to the manuscript 'The successor representation in high-risk drinking and alcohol-related contexts' (Musial et al., 2026, PsyArXiv, https://doi.org/10.31234/osf.io/rmdqk_v4).
 
 ## Content
 ### 01_experiment
