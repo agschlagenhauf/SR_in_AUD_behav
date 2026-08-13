@@ -42,10 +42,14 @@ You can either run **all** agents, or a **selected subset** (comma-separated)
 16. **hybrid_mf_mb_learnt**: Mixture of MF and MB agent with separate learning rates for reward and transition structure
 
 ## Input data
-The estimation script expects a **single combined CSV file** for all subjects called `modeling_data.csv` in the directory given by `--data-dir`:
+The estimation script reads a **single combined CSV file** for all subjects from the directory given by `--data-dir`. 
+The filename is set at the top of `run_estimation.py` via `BEHAV_FILE_NAME`:
+- For empirical participant data, set `BEHAV_FILE_NAME = "modeling_data.csv"` in `run_estimation.py` (exported from `03_data_analysis/05_exclusion_and_balancing_checks.qmd`)
+- For simulated data, set `BEHAV_FILE_NAME = model_fitting_data_....csv` (produced by `prepare_simulated_data_for_fitting.qmd` for parameter-recovery runs)
+
 Required columns (column names must match exactly):
 - `ID`: subject identifier
-- `component`: e.g. `transition1-learning`, `transition1-relearning`, `transition1-test`, `transition2-*`, etc.
+- `component`: e.g. `reward-learning`, `reward-relearning`, `reward-test`, `transition-learning`, `goal-state-learning`, `policy-learning`, etc.
 - `trial`: trial number within each phase
 - `state`: state description (e.g., `"1LeftTo2Right"`)
 - `choice`: action chosen (`"left"`, `"right"`, or NaN for forced transitions)
@@ -60,10 +64,10 @@ Required columns (column names must match exactly):
 5. **w** (`w`): Mixture weight for hybrid agents only—MF vs. non-MF branch. The three-parameter hybrids (`hybrid_mf_redsr_4_randsr_wupdate`, `hybrid_mf_randsr_noupdate`, `hybrid_mf_randsr_wupdate`) estimate `alpha_rwq`, `gamma`, and `w`; `hybrid_mf_mb_learnt` additionally estimates `alpha_mt` (four parameters total).
 
 ## Output Files
-All outputs are written to the `results_real_data` / `results_param_recovery` folder in the current working directory.
+Parameter estimates are written to the folder set by `RESULTS_PATH` at the top of `run_estimation.py` (default: `results_param_recovery/`). For empirical participant fits, set `RESULTS_PATH = "results_real_data/"`.
 
 For each agent type and method, `run_estimation.py` creates **one CSV per model** with one row per subject:
-- `results_real_data/best_parameters_{method}_{agent_type}.csv`
+- `{RESULTS_PATH}/best_parameters_{method}_{agent_type}.csv`
 
 Columns include:
 - `subject`, `agent_type`, `method`
@@ -78,15 +82,15 @@ Run, for example:
 python compare_models.py --results-dir results_real_data
 ```
 
-This produces:
+This produces (in `--results-dir`):
 
-- `results/model_fit_per_participant_{method}.csv`  
+- `model_fit_per_participant_{method}.csv`  
   Per-subject, per-model table with:
   - `subject`, `agent_type`, `method`
   - `alpha_rwq`, `alpha_mt`, `beta`, `gamma`
   - `best_likelihood`, `k_params`, `n_choices`, `AIC`, `BIC`
 
-- `results/model_comparison_summary_{method}.csv`  
+- `model_comparison_summary_{method}.csv`  
   One row per model with:
   - `agent_type`, `n_subjects_total`, `n_subjects_excluded_inf`, `n_subjects_used`
   - `k_params`, `n_choices`
@@ -94,7 +98,9 @@ This produces:
   - `AIC_mean`, `AIC_sd`
   - `BIC_mean`, `BIC_sd`
 
-- `results/parameter_summary_{method}.csv`  
+- `parameter_summary_{method}.csv`  
   One row per model with:
   - `agent_type`
   - Mean and SD per parameter, e.g. `alpha_rwq_mean`, `alpha_rwq_sd`, `alpha_mt_mean`, `alpha_mt_sd`, `beta_mean`, `beta_sd`, `gamma_mean`, `gamma_sd`
+
+BIC uses `n_choices = 250` (5 conditions × 25 likelihood trials × 2 choices per trial).

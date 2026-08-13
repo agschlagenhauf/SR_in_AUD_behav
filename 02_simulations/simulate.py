@@ -31,7 +31,9 @@ def run_simulations(simulation_mode, model, condition, num_simulations, alpha_td
         - model: str, e.g. "mf", "sr", "redsr_2"
         - condition: str, e.g. "control", "reward", "transition", "policy", "goal"
         - num_simulations: int, number of simulations to run
-        - mix_w: optional; mixture weight on non-MF policy for hybrid models (defaults to 0.5 if None)
+        - mix_w: mixture weight on non-MF policy for hybrid models (hybrid_mf_*).
+          Required when simulating hybrid models; set from each participant's fitted w
+          in PPC mode (see main.py). Hybrid models are not run in fixed mode.
 
     Returns:
         - [SimulationResult]: list of simulation results for a (model, condition) pair
@@ -125,7 +127,7 @@ def run_simulations(simulation_mode, model, condition, num_simulations, alpha_td
                 init_weight.append(row.copy())
 
             init_t_matrix = np.ones((num_pairs, num_states))*(1/num_states) # normalized transition matrix with small non-zero prior
-            init_t_matrix[num_states-1, :] = 0 
+            init_t_matrix[num_pairs-1, :] = 0 
             model_parameters = [num_states, v_state, init_t_matrix, init_weight]
 
         ###### full & reduced SR ######
@@ -199,7 +201,7 @@ def run_simulations(simulation_mode, model, condition, num_simulations, alpha_td
                 init_weight.append(row.copy())
 
             init_t_matrix = np.ones((num_pairs, num_states)) * (1 / num_states)
-            init_t_matrix[num_states - 1, :] = 0
+            init_t_matrix[num_pairs - 1, :] = 0
             model_parameters = [num_states, v_state_non_mf, init_t_matrix, init_weight, v_state_mf]
 
 
@@ -207,6 +209,7 @@ def run_simulations(simulation_mode, model, condition, num_simulations, alpha_td
         #
         # Learning Phase
         #
+        # Hybrid MF models (hybrid_mf_*) require mix_w and are only simulated in PPC mode.
         
         if model in (
             "hybrid_mf_redsr_4_randsr_wupdate",

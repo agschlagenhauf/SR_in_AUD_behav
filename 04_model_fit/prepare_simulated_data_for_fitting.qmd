@@ -16,24 +16,34 @@ sapply(packages, require, character.only = TRUE)
 
 data_path <- "/Users/milenamusial/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/PhD/04_B01/WP3/SR_in_AUD_behav/02_simulations/results_ppc"
 
-sim_data <- read.csv(file.path(data_path, "redsr_2_randsr_wupdate_ppc_allparticipants.csv"))
+model_names <- c('sr', 'mb', 'mb_learnt', 'mf',
+        'redsr_2', 'redsr_3', 'redsr_4', 
+        'randsr_noupdate', 'randsr_wupdate', 
+        'redsr_2_randsr_wupdate', 'redsr_3_randsr_wupdate', 'redsr_4_randsr_wupdate',
+        'hybrid_mf_redsr_4_randsr_wupdate', 'hybrid_mf_randsr_noupdate', 'hybrid_mf_randsr_wupdate', 'hybrid_mf_mb_learnt')
 
-sim_data <- sim_data %>%
-  select(participant_id, condition, phase, trial, state, action, reward) %>%
-  mutate(
-    phase = dplyr::recode(phase, relearning_test = "test"),
-    action = ifelse(action == 2, "right",
-                    ifelse(action == 1 & state %in% c(1, 2, 3), "left", NA)),
-    condition = dplyr::recode(condition, goal = "goal-state")) %>%
-  rename("ID" = "participant_id",
-         "choice" = "action") %>%
-  mutate(component = paste(condition, "-", phase, sep=""),
-         correct_first_state_action = "right") %>%
-    filter(! phase == "learning_test") %>%
-  select(ID, component, correct_first_state_action, trial, state, choice, reward)
+for (model_name in model_names) {
+  
+  sim_data <- read.csv(file.path(data_path, paste(model_name, "_ppc_allparticipants.csv", sep="")))
 
-```
+  sim_data <- sim_data %>%
+    select(participant_id, condition, phase, trial, state, action, reward) %>%
+    mutate(
+      phase = dplyr::recode(phase, relearning_test = "test"),
+      action = ifelse(action == 2, "right",
+                      ifelse(action == 1 & state %in% c(1, 2, 3), "left", NA)),
+      condition = dplyr::recode(condition, goal = "goal-state")) %>%
+    rename("ID" = "participant_id",
+           "choice" = "action") %>%
+    mutate(component = paste(condition, "-", phase, sep=""),
+           correct_first_state_action = "right") %>%
+      filter(! phase == "learning_test") %>%
+    select(ID, component, correct_first_state_action, trial, state, choice, reward)
+  
+  write.csv(sim_data, file.path(data_path, paste("model_fitting_data_", model_name, ".csv", sep="")))
+    
+}
 
-```{r}
-write.csv(sim_data, file.path(data_path, "model_fitting_data_redsr_2_randsr_wupdate.csv"))
+
+
 ```

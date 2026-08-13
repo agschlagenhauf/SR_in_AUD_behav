@@ -6470,6 +6470,13 @@ rm(mf_b1_a09_g01_learning,
 ### MB learner with different learning rates
 
 ```{r}
+
+mb_learnt_b1_atd09_am_01_g01 <- read.csv(file.path(data_path, "mb_learnt_nsimulations1000_alpha_td0.9_alpha_m0.1_beta1_gamma0.1.csv"))
+mb_learnt_b1_atd09_am_03_g01 <- read.csv(file.path(data_path, "mb_learnt_nsimulations1000_alpha_td0.9_alpha_m0.3_beta1_gamma0.1.csv"))
+mb_learnt_b1_atd09_am_05_g01 <- read.csv(file.path(data_path, "mb_learnt_nsimulations1000_alpha_td0.9_alpha_m0.5_beta1_gamma0.1.csv"))
+mb_learnt_b1_atd09_am_01_g03 <- read.csv(file.path(data_path, "mb_learnt_nsimulations1000_alpha_td0.9_alpha_m0.1_beta1_gamma0.3.csv"))
+mb_learnt_b1_atd09_am_03_g03 <- read.csv(file.path(data_path, "mb_learnt_nsimulations1000_alpha_td0.9_alpha_m0.3_beta1_gamma0.3.csv"))
+mb_learnt_b1_atd09_am_05_g03 <- read.csv(file.path(data_path, "mb_learnt_nsimulations1000_alpha_td0.9_alpha_m0.5_beta1_gamma0.3.csv"))
 mb_learnt_b1_atd09_am_01_g05 <- read.csv(file.path(data_path, "mb_learnt_nsimulations1000_alpha_td0.9_alpha_m0.1_beta1_gamma0.5.csv"))
 mb_learnt_b1_atd09_am_03_g05 <- read.csv(file.path(data_path, "mb_learnt_nsimulations1000_alpha_td0.9_alpha_m0.3_beta1_gamma0.5.csv"))
 mb_learnt_b1_atd09_am_05_g05 <- read.csv(file.path(data_path, "mb_learnt_nsimulations1000_alpha_td0.9_alpha_m0.5_beta1_gamma0.5.csv"))
@@ -6481,7 +6488,13 @@ mb_learnt_b1_atd09_am_03_g09 <- read.csv(file.path(data_path, "mb_learnt_nsimula
 mb_learnt_b1_atd09_am_05_g09<- read.csv(file.path(data_path, "mb_learnt_nsimulations1000_alpha_td0.9_alpha_m0.5_beta1_gamma0.9.csv"))
 
 
-filtered_dfs_learning <- list(mb_learnt_b1_atd09_am_01_g05,
+filtered_dfs_learning <- list(mb_learnt_b1_atd09_am_01_g01,
+                              mb_learnt_b1_atd09_am_03_g01,
+                              mb_learnt_b1_atd09_am_05_g01,
+                              mb_learnt_b1_atd09_am_01_g03,
+                              mb_learnt_b1_atd09_am_03_g03,
+                              mb_learnt_b1_atd09_am_05_g03,
+                              mb_learnt_b1_atd09_am_01_g05,
                               mb_learnt_b1_atd09_am_03_g05,
                               mb_learnt_b1_atd09_am_05_g05,
                               mb_learnt_b1_atd09_am_01_g07,
@@ -6492,7 +6505,13 @@ filtered_dfs_learning <- list(mb_learnt_b1_atd09_am_01_g05,
                               mb_learnt_b1_atd09_am_05_g09) %>%
     lapply(filter_model_df_learning)
 
-filtered_dfs_revaluation <- list(mb_learnt_b1_atd09_am_01_g05,
+filtered_dfs_revaluation <- list(mb_learnt_b1_atd09_am_01_g01,
+                              mb_learnt_b1_atd09_am_03_g01,
+                              mb_learnt_b1_atd09_am_05_g01,
+                              mb_learnt_b1_atd09_am_01_g03,
+                              mb_learnt_b1_atd09_am_03_g03,
+                              mb_learnt_b1_atd09_am_05_g03,
+                              mb_learnt_b1_atd09_am_01_g05,
                               mb_learnt_b1_atd09_am_03_g05,
                               mb_learnt_b1_atd09_am_05_g05,
                               mb_learnt_b1_atd09_am_01_g07,
@@ -6503,27 +6522,45 @@ filtered_dfs_revaluation <- list(mb_learnt_b1_atd09_am_01_g05,
                               mb_learnt_b1_atd09_am_05_g09) %>%
     lapply(filter_model_df_revaluation)
 
-mb_learnt_b1_atd09_am01_g05_learning <- filtered_dfs_learning[[1]]
-mb_learnt_b1_atd09_am03_g05_learning <- filtered_dfs_learning[[2]]
-mb_learnt_b1_atd09_am05_g05_learning <- filtered_dfs_learning[[3]]
-mb_learnt_b1_atd09_am01_g07_learning <- filtered_dfs_learning[[4]]
-mb_learnt_b1_atd09_am03_g07_learning <- filtered_dfs_learning[[5]]
-mb_learnt_b1_atd09_am05_g07_learning <- filtered_dfs_learning[[6]]
-mb_learnt_b1_atd09_am01_g09_learning <- filtered_dfs_learning[[7]]
-mb_learnt_b1_atd09_am03_g09_learning <- filtered_dfs_learning[[8]]
-mb_learnt_b1_atd09_am05_g09_learning <- filtered_dfs_learning[[9]]
+mb_learnt_b1_atd09_am01_g01_learning <- filtered_dfs_learning[[1]]
+mb_learnt_b1_atd09_am03_g01_learning <- filtered_dfs_learning[[2]]
+mb_learnt_b1_atd09_am05_g01_learning <- filtered_dfs_learning[[3]]
+mb_learnt_b1_atd09_am01_g03_learning <- filtered_dfs_learning[[4]]
+mb_learnt_b1_atd09_am03_g03_learning <- filtered_dfs_learning[[5]]
+mb_learnt_b1_atd09_am05_g03_learning <- filtered_dfs_learning[[6]]
+mb_learnt_b1_atd09_am01_g05_learning <- filtered_dfs_learning[[7]]
+mb_learnt_b1_atd09_am03_g05_learning <- filtered_dfs_learning[[8]]
+mb_learnt_b1_atd09_am05_g05_learning <- filtered_dfs_learning[[9]]
+mb_learnt_b1_atd09_am01_g07_learning <- filtered_dfs_learning[[10]]
+mb_learnt_b1_atd09_am03_g07_learning <- filtered_dfs_learning[[11]]
+mb_learnt_b1_atd09_am05_g07_learning <- filtered_dfs_learning[[12]]
+mb_learnt_b1_atd09_am01_g09_learning <- filtered_dfs_learning[[13]]
+mb_learnt_b1_atd09_am03_g09_learning <- filtered_dfs_learning[[14]]
+mb_learnt_b1_atd09_am05_g09_learning <- filtered_dfs_learning[[15]]
 
-mb_learnt_b1_atd09_am01_g05_revaluation <- filtered_dfs_revaluation[[1]]
-mb_learnt_b1_atd09_am03_g05_revaluation <- filtered_dfs_revaluation[[2]]
-mb_learnt_b1_atd09_am05_g05_revaluation <- filtered_dfs_revaluation[[3]]
-mb_learnt_b1_atd09_am01_g07_revaluation <- filtered_dfs_revaluation[[4]]
-mb_learnt_b1_atd09_am03_g07_revaluation <- filtered_dfs_revaluation[[5]]
-mb_learnt_b1_atd09_am05_g07_revaluation <- filtered_dfs_revaluation[[6]]
-mb_learnt_b1_atd09_am01_g09_revaluation <- filtered_dfs_revaluation[[7]]
-mb_learnt_b1_atd09_am03_g09_revaluation <- filtered_dfs_revaluation[[8]]
-mb_learnt_b1_atd09_am05_g09_revaluation <- filtered_dfs_revaluation[[9]]
+mb_learnt_b1_atd09_am01_g01_revaluation <- filtered_dfs_revaluation[[1]]
+mb_learnt_b1_atd09_am03_g01_revaluation <- filtered_dfs_revaluation[[2]]
+mb_learnt_b1_atd09_am05_g01_revaluation <- filtered_dfs_revaluation[[3]]
+mb_learnt_b1_atd09_am01_g03_revaluation <- filtered_dfs_revaluation[[4]]
+mb_learnt_b1_atd09_am03_g03_revaluation <- filtered_dfs_revaluation[[5]]
+mb_learnt_b1_atd09_am05_g03_revaluation <- filtered_dfs_revaluation[[6]]
+mb_learnt_b1_atd09_am01_g05_revaluation <- filtered_dfs_revaluation[[7]]
+mb_learnt_b1_atd09_am03_g05_revaluation <- filtered_dfs_revaluation[[8]]
+mb_learnt_b1_atd09_am05_g05_revaluation <- filtered_dfs_revaluation[[9]]
+mb_learnt_b1_atd09_am01_g07_revaluation <- filtered_dfs_revaluation[[10]]
+mb_learnt_b1_atd09_am03_g07_revaluation <- filtered_dfs_revaluation[[11]]
+mb_learnt_b1_atd09_am05_g07_revaluation <- filtered_dfs_revaluation[[12]]
+mb_learnt_b1_atd09_am01_g09_revaluation <- filtered_dfs_revaluation[[13]]
+mb_learnt_b1_atd09_am03_g09_revaluation <- filtered_dfs_revaluation[[14]]
+mb_learnt_b1_atd09_am05_g09_revaluation <- filtered_dfs_revaluation[[15]]
 
-rm(mb_learnt_b1_atd09_am_01_g05,
+rm(mb_learnt_b1_atd09_am_01_g01,
+    mb_learnt_b1_atd09_am_03_g01,
+    mb_learnt_b1_atd09_am_05_g01,
+    mb_learnt_b1_atd09_am_01_g03,
+    mb_learnt_b1_atd09_am_03_g03,
+    mb_learnt_b1_atd09_am_05_g03,
+    mb_learnt_b1_atd09_am_01_g05,
     mb_learnt_b1_atd09_am_03_g05,
     mb_learnt_b1_atd09_am_05_g05,
     mb_learnt_b1_atd09_am_01_g07,
@@ -6535,6 +6572,111 @@ rm(mb_learnt_b1_atd09_am_01_g05,
     filtered_dfs_learning, filtered_dfs_revaluation)
 
 # create additional variables
+
+mb_learnt_b1_atd09_am01_g01_learning <- mb_learnt_b1_atd09_am01_g01_learning %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.1,
+         gamma = 0.1) %>%
+  rename("Condition" = "condition")
+
+mb_learnt_b1_atd09_am03_g01_learning <- mb_learnt_b1_atd09_am03_g01_learning %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.3,
+         gamma = 0.1) %>%
+  rename("Condition" = "condition")
+
+mb_learnt_b1_atd09_am05_g01_learning <- mb_learnt_b1_atd09_am05_g01_learning %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.5,
+         gamma = 0.1) %>%
+  rename("Condition" = "condition")
+
+mb_learnt_b1_atd09_am01_g01_revaluation <- mb_learnt_b1_atd09_am01_g01_revaluation %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.1,
+         gamma = 0.1) %>%
+  rename("Condition" = "condition")
+
+mb_learnt_b1_atd09_am03_g01_revaluation <- mb_learnt_b1_atd09_am03_g01_revaluation %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.3,
+         gamma = 0.1) %>%
+  rename("Condition" = "condition")
+
+mb_learnt_b1_atd09_am05_g01_revaluation <- mb_learnt_b1_atd09_am05_g01_revaluation %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.5,
+         gamma = 0.1) %>%
+  rename("Condition" = "condition")
+
+
+
+
+
+mb_learnt_b1_atd09_am01_g03_learning <- mb_learnt_b1_atd09_am01_g03_learning %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.1,
+         gamma = 0.3) %>%
+  rename("Condition" = "condition")
+
+mb_learnt_b1_atd09_am03_g03_learning <- mb_learnt_b1_atd09_am03_g03_learning %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.3,
+         gamma = 0.3) %>%
+  rename("Condition" = "condition")
+
+mb_learnt_b1_atd09_am05_g03_learning <- mb_learnt_b1_atd09_am05_g03_learning %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.5,
+         gamma = 0.3) %>%
+  rename("Condition" = "condition")
+
+mb_learnt_b1_atd09_am01_g03_revaluation <- mb_learnt_b1_atd09_am01_g03_revaluation %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.1,
+         gamma = 0.3) %>%
+  rename("Condition" = "condition")
+
+mb_learnt_b1_atd09_am03_g03_revaluation <- mb_learnt_b1_atd09_am03_g03_revaluation %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.3,
+         gamma = 0.3) %>%
+  rename("Condition" = "condition")
+
+mb_learnt_b1_atd09_am05_g03_revaluation <- mb_learnt_b1_atd09_am05_g03_revaluation %>%
+  mutate(Model = "MB α(R) > α(T)",
+         beta = 1.0,
+         alpha_R = 0.9,
+         alpha_T = 0.5,
+         gamma = 0.3) %>%
+  rename("Condition" = "condition")
+
+
+
+
+
 mb_learnt_b1_atd09_am01_g05_learning <- mb_learnt_b1_atd09_am01_g05_learning %>%
   mutate(Model = "MB α(R) > α(T)",
          beta = 1.0,
@@ -6582,6 +6724,7 @@ mb_learnt_b1_atd09_am05_g05_revaluation <- mb_learnt_b1_atd09_am05_g05_revaluati
          alpha_T = 0.5,
          gamma = 0.5) %>%
   rename("Condition" = "condition")
+
 
 
 
@@ -6686,42 +6829,66 @@ mb_learnt_b1_atd09_am05_g09_revaluation <- mb_learnt_b1_atd09_am05_g09_revaluati
 
 
 # merge dfs
-df_mblearnt_learning <- rbind(mb_learnt_b1_atd09_am01_g05_learning,
+df_mblearnt_learning <- rbind(mb_learnt_b1_atd09_am01_g01_learning,
+                              mb_learnt_b1_atd09_am01_g03_learning,
+                              mb_learnt_b1_atd09_am01_g05_learning,
                               mb_learnt_b1_atd09_am01_g07_learning,
                               mb_learnt_b1_atd09_am01_g09_learning,
+                              mb_learnt_b1_atd09_am03_g01_learning,
+                              mb_learnt_b1_atd09_am03_g03_learning,
                               mb_learnt_b1_atd09_am03_g05_learning,
                               mb_learnt_b1_atd09_am03_g07_learning,
                               mb_learnt_b1_atd09_am03_g09_learning,
+                              mb_learnt_b1_atd09_am05_g01_learning,
+                              mb_learnt_b1_atd09_am05_g03_learning,
                               mb_learnt_b1_atd09_am05_g05_learning,
                               mb_learnt_b1_atd09_am05_g07_learning,
                               mb_learnt_b1_atd09_am05_g09_learning)
 
-df_mblearnt_revaluation <- rbind(mb_learnt_b1_atd09_am01_g05_revaluation,
+df_mblearnt_revaluation <- rbind(mb_learnt_b1_atd09_am01_g01_revaluation,
+                              mb_learnt_b1_atd09_am01_g03_revaluation,
+                              mb_learnt_b1_atd09_am01_g05_revaluation,
                               mb_learnt_b1_atd09_am01_g07_revaluation,
                               mb_learnt_b1_atd09_am01_g09_revaluation,
+                              mb_learnt_b1_atd09_am03_g01_revaluation,
+                              mb_learnt_b1_atd09_am03_g03_revaluation,
                               mb_learnt_b1_atd09_am03_g05_revaluation,
                               mb_learnt_b1_atd09_am03_g07_revaluation,
                               mb_learnt_b1_atd09_am03_g09_revaluation,
+                              mb_learnt_b1_atd09_am05_g01_revaluation,
+                              mb_learnt_b1_atd09_am05_g03_revaluation,
                               mb_learnt_b1_atd09_am05_g05_revaluation,
                               mb_learnt_b1_atd09_am05_g07_revaluation,
                               mb_learnt_b1_atd09_am05_g09_revaluation)
 
-rm(mb_learnt_b1_atd09_am01_g05_learning,
+rm(mb_learnt_b1_atd09_am01_g01_learning,
+                              mb_learnt_b1_atd09_am01_g03_learning,
+                              mb_learnt_b1_atd09_am01_g05_learning,
                               mb_learnt_b1_atd09_am01_g07_learning,
                               mb_learnt_b1_atd09_am01_g09_learning,
+                              mb_learnt_b1_atd09_am03_g01_learning,
+                              mb_learnt_b1_atd09_am03_g03_learning,
                               mb_learnt_b1_atd09_am03_g05_learning,
                               mb_learnt_b1_atd09_am03_g07_learning,
                               mb_learnt_b1_atd09_am03_g09_learning,
+                              mb_learnt_b1_atd09_am05_g01_learning,
+                              mb_learnt_b1_atd09_am05_g03_learning,
                               mb_learnt_b1_atd09_am05_g05_learning,
                               mb_learnt_b1_atd09_am05_g07_learning,
                               mb_learnt_b1_atd09_am05_g09_learning,
    
+                              mb_learnt_b1_atd09_am01_g01_revaluation,
+                              mb_learnt_b1_atd09_am01_g03_revaluation,
                               mb_learnt_b1_atd09_am01_g05_revaluation,
                               mb_learnt_b1_atd09_am01_g07_revaluation,
                               mb_learnt_b1_atd09_am01_g09_revaluation,
+                              mb_learnt_b1_atd09_am03_g01_revaluation,
+                              mb_learnt_b1_atd09_am03_g03_revaluation,
                               mb_learnt_b1_atd09_am03_g05_revaluation,
                               mb_learnt_b1_atd09_am03_g07_revaluation,
                               mb_learnt_b1_atd09_am03_g09_revaluation,
+                              mb_learnt_b1_atd09_am05_g01_revaluation,
+                              mb_learnt_b1_atd09_am05_g03_revaluation,
                               mb_learnt_b1_atd09_am05_g05_revaluation,
                               mb_learnt_b1_atd09_am05_g07_revaluation,
                               mb_learnt_b1_atd09_am05_g09_revaluation)
@@ -7035,7 +7202,7 @@ posthoc_plot <- ggplot(revaluation_all_plot_alpha09_aT03[revaluation_all_plot_al
     scale_fill_viridis(option = "viridis", discrete = TRUE)
 posthoc_plot
 
-ggsave(filename = "main_simulation_paths_posthocmodels_new.png", path = figure_path, width = 9, height = 4.5, device='png', dpi=600)
+ggsave(filename = "main_simulation_paths_posthocmodels_new2.png", path = figure_path, width = 9, height = 4.5, device='png', dpi=600)
 
 ```
 

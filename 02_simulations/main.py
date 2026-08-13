@@ -17,23 +17,26 @@ np.random.seed(42)
 #
 
 SIMULATION_MODE = "ppc" # "fixed" for multiple simulations from same set of manually defined parameter values; "ppc" for posterior predictive checks; "recovery" for one single simulation from set of parameter values drawn from distribution
-                                                                                                                                                                                                                                                                                                        
+
+# Hybrid MF models (hybrid_mf_*) require mix_w from fitted parameters and are
+# only simulated in PPC mode.               
+
 MODELS = [#"sr", 
           #"mb", 
           #"mf",
           #"redsr_2",
           #"redsr_3",
           #"redsr_4",
-          "randsr_noupdate",
+          #"randsr_noupdate",
           #"randsr_wupdate",
           #"redsr_2_randsr_wupdate",
           #"redsr_3_randsr_wupdate",
           #"redsr_4_randsr_wupdate",
           #"mb_learnt",
-          #"hybrid_mf_redsr_4_randsr_wupdate",
+          "hybrid_mf_redsr_4_randsr_wupdate",
           "hybrid_mf_randsr_noupdate",
-          #"hybrid_mf_randsr_wupdate",
-          #"hybrid_mf_mb_learnt"
+          "hybrid_mf_randsr_wupdate",
+          "hybrid_mf_mb_learnt"
           ]
 
 CONDITIONS = ["control", "reward", "transition", "policy", "goal"] # "control", "reward", "transition", "policy", "goal"
@@ -164,44 +167,45 @@ if __name__ == "__main__":
         transition_log_headers = get_transition_log_headers()
 
         for MODEL in MODELS:
-
-            for index, a_m in enumerate(ALPHA_M):
             
-                for a_td in ALPHA_TD:
+            # For mb_learnt, alpha_td and alpha_m are independent; for all other models they are identical
+            if MODEL == "mb_learnt":
+                alpha_combinations = [(a_td, a_m) for a_td in ALPHA_TD for a_m in ALPHA_M]
+            else:
+                alpha_combinations = [(a, a) for a in ALPHA_TD]
+
+            for a_td, a_m in alpha_combinations:
+            
+                for g in GAMMA:
                     
-                    if MODEL != "mb_learnt":
-                        a_td = ALPHA_TD[index] # index for all models, comment out for MB learnt
-                        
-                    for g in GAMMA:
-                        
-                        model_simulation_results = []
+                    model_simulation_results = []
 
-                        for condition in CONDITIONS:
-                            print(
-                                f"> Simulating model {GREEN}{format_model(MODEL)}{RESET} "
-                                f"for condition {GREEN}{format_condition(condition)}{RESET} ..."
-                            )
-
-                            # Run simulations
-                            simulation_results = run_simulations(SIMULATION_MODE, MODEL, condition, NUM_SIMULATIONS, a_td, a_m, BETA, g)
-
-                            # Add to simulation results per model for all conditions
-                            model_simulation_results.extend(simulation_results)
-
-                        # Write model simulation results per model to .csv file
-                        model_simulation_results_filepath = join(
-                            OUTPUT_DIR,
-                            f"{MODEL}_nsimulations{NUM_SIMULATIONS}_alpha_td{a_td}_alpha_m{a_m}_beta{BETA}_gamma{g}.csv",
+                    for condition in CONDITIONS:
+                        print(
+                            f"> Simulating model {GREEN}{format_model(MODEL)}{RESET} "
+                            f"for condition {GREEN}{format_condition(condition)}{RESET} ..."
                         )
 
-                        print(f"> Writing transition log to {GREEN}{model_simulation_results_filepath}{RESET} ...")
-                        with open(model_simulation_results_filepath, "w") as model_simulation_results_file:
-                            model_simulation_results_file.write(transition_log_headers[MODEL])
-                            transition_log_lines = flatten(
-                                [result.transition_log for result in model_simulation_results]
-                            )
-                            model_simulation_results_file.writelines(suffix_all(transition_log_lines, "\n"))
-                        print("> Done\n")
+                        # Run simulations
+                        simulation_results = run_simulations(SIMULATION_MODE, MODEL, condition, NUM_SIMULATIONS, a_td, a_m, BETA, g)
+
+                        # Add to simulation results per model for all conditions
+                        model_simulation_results.extend(simulation_results)
+
+                    # Write model simulation results per model to .csv file
+                    model_simulation_results_filepath = join(
+                        OUTPUT_DIR,
+                        f"{MODEL}_nsimulations{NUM_SIMULATIONS}_alpha_td{a_td}_alpha_m{a_m}_beta{BETA}_gamma{g}.csv",
+                    )
+
+                    print(f"> Writing transition log to {GREEN}{model_simulation_results_filepath}{RESET} ...")
+                    with open(model_simulation_results_filepath, "w") as model_simulation_results_file:
+                        model_simulation_results_file.write(transition_log_headers[MODEL])
+                        transition_log_lines = flatten(
+                            [result.transition_log for result in model_simulation_results]
+                        )
+                        model_simulation_results_file.writelines(suffix_all(transition_log_lines, "\n"))
+                    print("> Done\n")
 
     if SIMULATION_MODE == "ppc":
 
@@ -237,6 +241,12 @@ if __name__ == "__main__":
                     )
 
                     participant_row = model_rows.loc[model_rows["subject"] == participant]
+                    if participant_row.empty:
+                        print(
+                            f"Skipping participant {GREEN}{format_condition(participant)}{RESET}: "
+                            f"no fitted parameters for {format_model(MODEL)}"
+                        )
+                        continue
 
                     ALPHA_TD = participant_row["alpha_rwq"].iloc[0]
                     ALPHA_M = participant_row["alpha_mt"].iloc[0]
@@ -251,7 +261,10 @@ if __name__ == "__main__":
                     ):
                         MIX_W = float(participant_row["w"].iloc[0])
 
-                    # Run each condition and append to one big file per model.
+                    # Buffer rows per participant; write only if all conditions succeed.
+                    participant_lines = []
+                    participant_failed = False
+
                     for condition in CONDITIONS:
 
                         print(
@@ -264,17 +277,20 @@ if __name__ == "__main__":
                             )
                         except FloatingPointError as e:
                             print(
-                                f"Skipping participant {participant} for condition {format_condition(condition)} "
-                                f"due to numerical issue: {e}"
+                                f"Skipping participant {participant} entirely "
+                                f"(failed on condition {format_condition(condition)}): {e}"
                             )
-                            simulation_results = None
+                            participant_failed = True
                             break
-                        
+
                         transition_log_lines = flatten([result.transition_log for result in simulation_results])
 
                         for line in transition_log_lines:
-                            # Keep the simulation_number generated by run_simulations (per participant & model)
-                            out_f.write(f"{participant},{line}\n")
+                            participant_lines.append(f"{participant},{line}\n")
+
+                    if not participant_failed:
+                        for line in participant_lines:
+                            out_f.write(line)
 
             print("> Done\n")
 

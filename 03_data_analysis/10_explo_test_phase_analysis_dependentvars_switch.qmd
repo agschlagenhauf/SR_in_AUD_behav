@@ -42,14 +42,16 @@ load(file.path(data_path, "demo_psych_data_included.RData"))
 # Plot
 
 ```{r}
-rating_state1_group_version_condition_df <- rating_df %>%
+rating_state1_group_version_condition_df_try <- rating_df %>%
   group_by(group, version, condition) %>%
-  summarise(n = n(),
-            mean_rating_diff = mean(rating_diff_switch_state1, na.rm=T),
+  summarise(n = sum(!is.na(rating_diff_switch_state1)),
+            mean_rating_diff = mean(rating_diff_switch_state1, na.rm = TRUE),
             se_rating_diff = sd(rating_diff_switch_state1, na.rm = TRUE)/sqrt(n()),
             ci_l = ci(rating_diff_switch_state1, na.rm=TRUE)[2],
             ci_u = ci(rating_diff_switch_state1, na.rm=TRUE)[3]
             )
+
+rating_state1_group_version_condition_df$se_rating_diff == rating_state1_group_version_condition_df_try$se_rating_diff
 
 rating_state1_group_version_condition_df %>%
   kable("html",

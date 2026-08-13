@@ -475,8 +475,8 @@ random_slopes <- ranef(model3_rs_vers)$ID[,"condition4"]
 # create binary group and version variables
 dummies <- demo_psych %>%
   arrange(prolific_ID) %>%
-  mutate(group_binary = ifelse(group == "Harmful drinkers", 1, 0),
-         version_binary = ifelse(version == "Alcohol version", 1, 0)) %>%
+  mutate(group_binary = ifelse(group == "Harmful drinkers", 0.5, -0.5),
+         version_binary = ifelse(version == "Alcohol version", 0.5, -0.5)) %>%
   dplyr::select(group_binary, version_binary)
 
 # calculate individual adjusted slopes for condition (contrast reward vs. transition)
@@ -940,14 +940,14 @@ contrasts <- contrast(mmeans, "trt.vs.ctrl", ref=5, adjust=NULL)
 contrasts
 ```
 
-# Reaction times
+# Reaction times (all test-phase states)
 
 ## RT per condition
 
 ### Plot
 
 ```{r}
-RT_state1_condition_df <- trial_df %>%
+RT_test_condition_df <- trial_df %>%
   filter(phase == "test") %>%
   group_by(condition) %>%
   summarise(mean_RT = mean(RT),
@@ -956,14 +956,14 @@ RT_state1_condition_df <- trial_df %>%
             ci_u = ci(RT, na.rm=TRUE)[3],
             n=n())
 
-RT_state1_condition_df %>%
+RT_test_condition_df %>%
   kable("html",
         digits=2) %>%
   kable_styling(font_size = 16,
                 latex_options = "scale_down")
 
 
-RT_state1_condition_df_gc <- trial_df %>%
+RT_test_condition_df_gc <- trial_df %>%
   filter(phase == "test") %>%
   group_by(group, version, condition) %>%
   summarise(mean_RT = mean(RT),
@@ -972,7 +972,7 @@ RT_state1_condition_df_gc <- trial_df %>%
             ci_u = ci(RT, na.rm=TRUE)[3],
             n=n())
 
-RT_state1_condition_df_gc %>%
+RT_test_condition_df_gc %>%
   kable("html",
         digits=2) %>%
   kable_styling(font_size = 16,
@@ -985,10 +985,10 @@ RT_state1_condition_df_gc %>%
 supp.labs <- c("Low-risk drinkers", "High-risk drinkers", "Non-alcohol context", "Alcohol context")
 names(supp.labs) <- c("Low-risk drinkers", "Harmful drinkers", "Monetary version", "Alcohol version")
 
-RT_state1_plotting_df <- trial_df %>%
+RT_test_plotting_df <- trial_df %>%
   filter(phase == "test")
 
-ggplot(RT_state1_plotting_df, aes(x=condition, y=RT, fill = condition)) +
+ggplot(RT_test_plotting_df, aes(x=condition, y=RT, fill = condition)) +
   geom_violin(size=0.3, alpha=0.5) +
   geom_boxplot(size=0.3, width=0.2, outliers = F, alpha=0) +
   facet_grid(vars(group), vars(version), labeller = as_labeller(supp.labs)) +

@@ -14,8 +14,7 @@ from likelihood_computation import run_parameter_estimation_lbfgsb
 
 ############# Define paths #############
 RESULTS_PATH = "results_param_recovery/"
-BEHAV_FILE_NAME = "model_fitting_data_mf.csv"
-# data path is defined via command line argument
+BEHAV_FILE_NAME = "model_fitting_data_hybrid_mf_mb_learnt.csv"
 #########################################
 
 def process_single_subject(subject_data, agent_type='sr'):
@@ -261,7 +260,6 @@ def main():
     print(f"Failed: {len(overall_failed_subjects)}")
     
     print("\n🎉 All processing complete!")
-
 
 if __name__ == "__main__":
     main()

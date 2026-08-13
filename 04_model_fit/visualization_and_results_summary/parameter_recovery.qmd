@@ -47,7 +47,8 @@ models <- c("redsr_4_randsr_wupdate",
             "redsr_2",
             "sr",
             "mb",
-            "mf")
+            "mf"
+            )
 ```
 
 # Correlation
@@ -138,7 +139,7 @@ for (model in models) {
   
   recovery_plot
 
-  ggsave(filename = paste("parameter_recovery_", model, ".png", sep=""), path = figure_path, width = 15, height = 5, device='png', dpi=600, bg="white")
+  ggsave(filename = paste("parameter_recovery_new_", model, ".png", sep=""), path = figure_path, width = 15, height = 5, device='png', dpi=600, bg="white")
     
 }
 

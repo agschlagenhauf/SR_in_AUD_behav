@@ -6,7 +6,7 @@ rm(list = ls(all = TRUE))
 
 ##### load packages
 
-packages <- c("dplyr", "ggplot2", "tidyr", "gmodels")
+packages <- c("dplyr", "ggplot2", "tidyr", "gmodels", "forcats")
 #install.packages(packages)
 sapply(packages, require, character.only = TRUE)
 
@@ -489,9 +489,9 @@ demo_psych_alc <- demo_psych_alc %>%
 demo_psych_alc <- demo_psych_alc %>%
   # format 1 = indication over last 3 months, 2 = indication per week within last 3 months
   mutate(drinking_days = case_when((drinking_days_format == 1) ~ drinking_days,
-                                   (drinking_days_format == 2 & drinks_per_day < 8) ~ drinking_days*4.345*3,
+                                   (drinking_days_format == 2 & drinking_days < 8) ~ drinking_days*4.345*3,
                                    # if somebody indicates they drank on more than 7 days a week, this is implausible and will be coded as NA
-                                   (drinking_days_format == 2 & drinks_per_day > 7) ~ NA),
+                                   (drinking_days_format == 2 & drinking_days > 7) ~ NA),
          binge_days = case_when((binge_days_format == 1) ~ binge_days,
                                 (binge_days_format == 2 & binge_days < 8) ~ binge_days*4.345*3,
                                 # if somebody indicates they binged on more than 7 days a week, this is implausible and will be coded as NA
@@ -540,7 +540,7 @@ demo_psych_alc <- demo_psych_alc %>%
     uppsp_premeditation = mean(c_across(starts_with("b01_wp3_uppsp_pm")), na.rm = F),
     uppsp_perseverance = mean(c_across(starts_with("b01_wp3_uppsp_ps")), na.rm = F),
     uppsp_sensation_seeking = mean(c_across(starts_with("b01_wp3_uppsp_ss")), na.rm = F),
-    uppsp_positive_urgency = mean(c_across(starts_with("b01_wp3_uppsp_ps")), na.rm = F),
+    uppsp_positive_urgency = mean(c_across(starts_with("b01_wp3_uppsp_pu")), na.rm = F),
     uppsp_total = mean(c_across(starts_with("b01_wp3_uppsp")), na.rm = F)
   ) %>%
   ungroup()
@@ -719,9 +719,9 @@ demo_psych_con <- demo_psych_con %>%
 demo_psych_con <- demo_psych_con %>%
   # format 1 = indication over last 3 months, 2 = indication per week within last 3 months
   mutate(drinking_days = case_when((drinking_days_format == 1) ~ drinking_days,
-                                   (drinking_days_format == 2 & drinks_per_day < 8) ~ drinking_days*4.345*3,
+                                   (drinking_days_format == 2 & drinking_days < 8) ~ drinking_days*4.345*3,
                                    # if somebody indicates they drank on more than 7 days a week, this is implausible and will be coded as NA
-                                   (drinking_days_format == 2 & drinks_per_day > 7) ~ NA),
+                                   (drinking_days_format == 2 & drinking_days > 7) ~ NA),
          binge_days = case_when((binge_days_format == 1) ~ binge_days,
                                 (binge_days_format == 2 & binge_days < 8) ~ binge_days*4.345*3,
                                 # if somebody indicates they binged on more than 7 days a week, this is implausible and will be coded as NA
@@ -770,7 +770,7 @@ demo_psych_con <- demo_psych_con %>%
     uppsp_premeditation = mean(c_across(starts_with("b01_wp3_uppsp_pm")), na.rm = F),
     uppsp_perseverance = mean(c_across(starts_with("b01_wp3_uppsp_ps")), na.rm = F),
     uppsp_sensation_seeking = mean(c_across(starts_with("b01_wp3_uppsp_ss")), na.rm = F),
-    uppsp_positive_urgency = mean(c_across(starts_with("b01_wp3_uppsp_ps")), na.rm = F),
+    uppsp_positive_urgency = mean(c_across(starts_with("b01_wp3_uppsp_pu")), na.rm = F),
     uppsp_total = mean(c_across(starts_with("b01_wp3_uppsp")), na.rm = F)
   ) %>%
   ungroup()

@@ -300,7 +300,9 @@ prolific_con_harmful <- prolific_con_harmful %>%
 prolific_con_harmful <- prolific_con_harmful %>%
   filter(! Participant.id %in% c("667a7551a3666990fac80091"))
 prolific_alc_harmful <- prolific_alc_harmful %>%
-  filter(! Participant.id %in% c("678f950f15b33743ed9c40d7"))
+  filter(! Participant.id %in% c("678f950f15b33743ed9c40d7",
+                                 "676b158076c67ea864bd43a5",
+                                 "677c11bc346d7ba49dae4d55"))
 
 # save output
 save(prolific_alc_lowrisk, prolific_alc_harmful, prolific_con_lowrisk, prolific_con_harmful, file = file.path(data_path, "RDFs/IDs_complete.RData"))

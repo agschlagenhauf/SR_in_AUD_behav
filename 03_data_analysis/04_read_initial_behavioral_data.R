@@ -648,6 +648,20 @@ for (i in invalid_trial_df$running_index) { # for every invalid trial identified
     trial_df$valid_choice[trial_df$running_index == i-3] = FALSE
     trial_df$valid_choice[trial_df$running_index == i-4] = FALSE
   }
+
+  # relearning trials: start at state 4/5/6 (3 states per trial), not state 1
+  if (trial_df$phase[trial_df$running_index == i] == "relearning") {
+
+    if (trial_df$state[trial_df$running_index == i] %in% c(7, 8, 9) & (trial_df$trial[trial_df$running_index == i] %in% trial_df$trial[trial_df$running_index == i - 1])) {
+      trial_df$valid_choice[trial_df$running_index == i - 1] = FALSE
+    }
+    if (trial_df$state[trial_df$running_index == i] == 10 & (trial_df$trial[trial_df$running_index == i] %in% trial_df$trial[trial_df$running_index == i - 1])) {
+      trial_df$valid_choice[trial_df$running_index == i - 1] = FALSE
+    }
+    if (trial_df$state[trial_df$running_index == i] == 10 & (trial_df$trial[trial_df$running_index == i] %in% trial_df$trial[trial_df$running_index == i - 2])) {
+      trial_df$valid_choice[trial_df$running_index == i - 2] = FALSE
+    }
+  }
 }
 
 # extract rows relevant for rating df (prepared below)

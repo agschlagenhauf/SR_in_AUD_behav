@@ -157,8 +157,8 @@ learning_correct_paths_group_version_condition_time_df <- trial_df %>%
   group_by(group, version, condition, accumulated_state1_visits) %>%
   summarise(mean_correct = mean(correct_path, na.rm = TRUE),
             se_correct = sd(correct_path, na.rm = TRUE)/sqrt(n()),
-            ci_l = ci(correct_state_1, na.rm=TRUE)[2],
-            ci_u = ci(correct_state_1, na.rm=TRUE)[3],
+            ci_l = ci(correct_path, na.rm=TRUE)[2],
+            ci_u = ci(correct_path, na.rm=TRUE)[3],
             n = n()
             )
 

@@ -59,7 +59,55 @@ demo_psych <- demo_psych %>%
 
 # Exclusion
 
+## Check completeness of every participant's dataset
+
+```{r}
+# does every phase per condition contain the correct trial number?
+complete_datasets <- trial_df %>%
+  select(ID, group, version, condition, phase, trial) %>%
+  unique() %>%
+  group_by(ID, condition, phase) %>%
+  summarise(n = n())
+
+complete_datasets_learning <- complete_datasets %>% 
+  filter(phase == "learning")
+min(complete_datasets_learning$n)
+
+complete_datasets_relearning <- complete_datasets %>% 
+  filter(phase == "relearning")
+min(complete_datasets_relearning$n)
+
+complete_datasets_test <- complete_datasets %>% 
+  filter(phase == "test")
+min(complete_datasets_test$n)
+
+# does every participant have all five task conditions?
+complete_participants <- complete_datasets_learning %>%
+  group_by(ID) %>%
+  summarise(n = n())
+min(complete_participants$n)
+complete_participants$ID[complete_participants$n<5]
+
+# does every participant have all phases per task condition?
+complete_phases <- complete_datasets %>%
+  group_by(ID, condition) %>%
+  summarise(n = n())
+min(complete_phases$n)
+```
+
+All participants have complete data.
+
 ## Complete sample
+
+```{r}
+summary_IDs <- trial_df %>%
+  select(ID) %>%
+  unique() %>%
+  summarise(n = n())
+
+summary_IDs
+```
+
 
 ```{r}
 summary <- trial_df %>%
@@ -207,6 +255,72 @@ learning_correct_condition_df_excl %>%
   kable("html") %>%
   kable_styling(font_size = 18,
                 latex_options = "scale_down")
+
+
+# get n conditions
+n_conditions <- trial_df %>%
+  select(ID, condition) %>%
+  unique() %>%
+  group_by(condition) %>%
+  summarise(n = n()
+            )
+
+learning_correct_condition_df_excl_percent <- left_join(learning_correct_condition_df_excl, n_conditions, by="condition") %>%
+  mutate(percent_excluded = n.x/n.y*100)
+
+learning_correct_condition_df_excl_percent %>%
+  kable("html") %>%
+  kable_styling(font_size = 18,
+                latex_options = "scale_down")
+
+learning_correct_condition_df_incl_percent <- left_join(learning_correct_condition_df_excl, n_conditions, by="condition") %>%
+  mutate(percent_included = 100-(n.x/n.y*100))
+
+learning_correct_condition_df_incl_percent %>%
+  kable("html") %>%
+  kable_styling(font_size = 18,
+                latex_options = "scale_down")
+
+```
+
+### Excluded components per condition, group, and version
+
+```{r}
+learning_correct_condition_group_version_df_excl <- learning_paths_last5_correct_component_df_excl %>%
+  group_by(condition, group, version) %>%
+  summarise(n = n()) %>%
+  arrange(group, version, condition)
+
+learning_correct_condition_group_version_df_excl %>%
+  kable("html") %>%
+  kable_styling(font_size = 18,
+                latex_options = "scale_down")
+
+
+# get n conditions
+n_conditions <- trial_df %>%
+  select(ID, condition, group, version) %>%
+  unique() %>%
+  group_by(condition, group, version) %>%
+  summarise(n = n()) %>%
+  arrange(group, version, condition)
+
+learning_correct_condition_group_version_df_excl_percent <- left_join(learning_correct_condition_group_version_df_excl, n_conditions, by=c("group", "version", "condition")) %>%
+  mutate(percent_excluded = n.x/n.y*100)
+
+learning_correct_condition_group_version_df_excl_percent %>%
+  kable("html") %>%
+  kable_styling(font_size = 18,
+                latex_options = "scale_down")
+
+learning_correct_condition_group_version_df_incl_percent <- left_join(learning_correct_condition_group_version_df_excl, n_conditions, by=c("group", "version", "condition")) %>%
+  mutate(percent_included = 100-(n.x/n.y*100))
+
+learning_correct_condition_group_version_df_incl_percent %>%
+  kable("html") %>%
+  kable_styling(font_size = 18,
+                latex_options = "scale_down")
+
 ```
 
 ### Excluded components per component index
